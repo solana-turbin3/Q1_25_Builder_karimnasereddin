@@ -70,7 +70,7 @@ impl<'info> Take<'info>{
 
         };
         let cpi_ctx = CpiContext::new(cpi_program,cpi_accounts);
-        transfer_checked(cpi_ctx,vault.amount,self.mint_a.decimals)?;
+        transfer_checked(cpi_ctx,self.vault.amount,self.mint_a.decimals)?;
         Ok(())
     }
     

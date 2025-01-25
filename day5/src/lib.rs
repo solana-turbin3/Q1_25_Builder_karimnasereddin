@@ -15,7 +15,7 @@ pub mod escrow {
         ctx.accounts.deposit(deposit_amount)?;
         Ok(())
     }
-    pub fn take(ctx:Context<Take>,amount:u64)-> Result<()> {
+    pub fn take(ctx:Context<Take>)-> Result<()> {
         ctx.accounts.exchange()?;
         ctx.accounts.close_vault()?;
         Ok(())
@@ -25,4 +25,5 @@ pub mod escrow {
         Ok(())
     }
 }
+
 
