@@ -49,19 +49,7 @@ pub struct Take<'info>{
 }
 
 impl<'info> Take<'info>{
-    pub fn deposit(&mut self,amount:u64) -> Result<()>{
-        let cpi_program=self.token_program.to_account_info();
-        let cpi_accounts=TransferChecked{
-            from:self.taker_mint_b_ata.to_account_info(),
-            mint: self.mint_b.to_account_info(),
-            to: self.maker_mint_b_ata.to_account_info(),
-            authority: self.taker.to_account_info(),
-        };
-        let cpi_ctx = CpiContext::new(cpi_program,cpi_accounts);
-        transfer_checked(cpi_ctx,amount,self.mint_b.decimals)?;
-        Ok(())
-    }
-    pub fn withdraw(&mut self,amount:u64) -> Result<()>{
+    pub fn exchange(&mut self) -> Result<()>{
         let cpi_program=self.token_program.to_account_info();
         let cpi_accounts=TransferChecked{
             from:self.taker_mint_b_ata.to_account_info(),
@@ -71,18 +59,18 @@ impl<'info> Take<'info>{
 
         };
         let cpi_ctx = CpiContext::new(cpi_program,cpi_accounts);
-        transfer_checked(cpi_ctx,amount,self.mint_b.decimals)?;
+        transfer_checked(cpi_ctx,self.escrow.receive_amount,self.mint_b.decimals)?;
 
         let cpi_program=self.token_program.to_account_info();
         let cpi_accounts=TransferChecked{
             from:self.vault.to_account_info(),
-            mint: self.mint_b.to_account_info(),
-            to: self.taker_mint_b_ata.to_account_info(),
+            mint: self.mint_a.to_account_info(),
+            to: self.taker_mint_a_ata.to_account_info(),
             authority: self.vault.to_account_info(),
 
         };
         let cpi_ctx = CpiContext::new(cpi_program,cpi_accounts);
-        transfer_checked(cpi_ctx,amount,self.mint_b.decimals)?;
+        transfer_checked(cpi_ctx,vault.amount,self.mint_a.decimals)?;
         Ok(())
     }
     
