@@ -6,7 +6,7 @@ use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 use constant_product_curve::ConstantProduct;
 
 use crate::state::Config;
-use crate::error::AmmError;
+use crate::errors::AmmError;
 
 
 #[derive(Accounts)]
