@@ -1,7 +1,7 @@
 import * as anchor from "@coral-xyz/anchor";
 import { BN, Program } from "@coral-xyz/anchor";
 import { Sagent } from "../target/types/sagent";
-import { PublicKey, SystemProgram } from "@solana/web3.js";
+import { LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
 
 describe("sagent", () => {
   anchor.setProvider(anchor.AnchorProvider.env());
@@ -28,7 +28,7 @@ describe("sagent", () => {
     // Funding the admin
     const adminAirdrop = await program.provider.connection.requestAirdrop(
       admin.publicKey,
-      1e9+10000
+      1* LAMPORTS_PER_SOL
     );
     await program.provider.connection.confirmTransaction(adminAirdrop);
     // Execute the transaction
@@ -60,7 +60,7 @@ describe("sagent", () => {
     // Fund the initializer
     const initializerAirdrop = await program.provider.connection.requestAirdrop(
       initializer.publicKey,
-      1e9+10000 // 1 SOL
+      1.1*LAMPORTS_PER_SOL // 2SOL
     );
     await program.provider.connection.confirmTransaction(initializerAirdrop);
 
@@ -96,7 +96,11 @@ describe("sagent", () => {
     const profileAccount=await program.account.profile.fetch(profilePDA)
     console.log("Remaining Transactions are: ",profileAccount.remainingTx.toString());
 
-});
+  });
+  it("Check Treasury Balance", async () => {
+    const balance=await program.provider.connection.getBalance(treasuryPda)
+    console.log("Treasury Balance is: ",(balance/LAMPORTS_PER_SOL).toString()+" SOL");
+  });
   it("User Profile Account Closed", async () => {
 
 

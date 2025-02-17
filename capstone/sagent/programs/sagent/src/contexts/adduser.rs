@@ -17,13 +17,6 @@ pub struct AddUser<'info> {
     )]
     pub user: Account<'info, Profile>,
 
-    #[account(
-      mut,
-      seeds = [b"treasury"], 
-      bump,
-  )]
-  pub treasury: SystemAccount<'info>,
-
     
   pub system_program: Program<'info, System>,
 

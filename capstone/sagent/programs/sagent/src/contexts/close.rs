@@ -9,6 +9,7 @@ pub struct Close<'info> {
 
     #[account(
       mut,
+      close = initializer, 
       seeds = [b"profile", initializer.key().as_ref()],
       bump=user.bump,
     )]
