@@ -10,6 +10,7 @@ describe("sagent", () => {
   const program = anchor.workspace.Sagent as Program<Sagent>;
   const initializer = anchor.web3.Keypair.generate();
   const admin = anchor.web3.Keypair.generate();
+  const initializer2 = anchor.web3.Keypair.generate();
   const [configPda, configBump] = PublicKey.findProgramAddressSync(
     [anchor.utils.bytes.utf8.encode("config")],
     program.programId
@@ -22,6 +23,13 @@ describe("sagent", () => {
     [
       anchor.utils.bytes.utf8.encode("profile"),
       initializer.publicKey.toBuffer(),
+    ],
+    program.programId
+  );
+  const [profilePDA2, profileBump2] = PublicKey.findProgramAddressSync(
+    [
+      anchor.utils.bytes.utf8.encode("profile"),
+      initializer2.publicKey.toBuffer(),
     ],
     program.programId
   );
@@ -50,9 +58,8 @@ describe("sagent", () => {
       .signers([admin])
       .rpc();
 
-    console.log("Transaction signature:", tx);
     const configAccounts=await program.account.config.fetch(configPda)
-    console.log("Config admin is: ",configAccounts.admin.toString());
+    console.log("Config admin is: ",configAccounts.admin.toString(),"and fee per non-sub transaction is: ",configAccounts.feeBasisPoints/100,"%");
   });
   it("Create User profile", async () => {
     
@@ -62,7 +69,7 @@ describe("sagent", () => {
     // Fund the initializer
     const initializerAirdrop = await program.provider.connection.requestAirdrop(
       initializer.publicKey,
-      1.1*LAMPORTS_PER_SOL // 2SOL
+      2.5*LAMPORTS_PER_SOL // 2SOL
     );
     await program.provider.connection.confirmTransaction(initializerAirdrop);
 
@@ -75,10 +82,8 @@ describe("sagent", () => {
       })
       .signers([initializer])
       .rpc();
-
-    console.log("Transaction signature:", tx);
   });
-  it("Subscribed", async () => {
+  it("User has Subscribed", async () => {
 
 
     // Execute the transaction
@@ -92,17 +97,79 @@ describe("sagent", () => {
       .signers([initializer])
       .rpc();
 
-    console.log("Transaction signature:", tx);
   });
-  it("Checking remaining tx", async () => {
-    const profileAccount=await program.account.profile.fetch(profilePDA)
-    console.log("Remaining Transactions for",(profileAccount.name).toString(),"are: ",(profileAccount.remainingTx).toString());
+  it("Create Second User profile", async () => {
+    
+    const name = "Bob";
+
+    // Fund the initializer
+    const initializerAirdrop = await program.provider.connection.requestAirdrop(
+      initializer2.publicKey,
+      1.5*LAMPORTS_PER_SOL // 2SOL
+    );
+    await program.provider.connection.confirmTransaction(initializerAirdrop);
+
+    // Execute the transaction
+    const tx = await program.methods.addUser(name) 
+      .accounts({
+        user:profilePDA2,
+        initializer: initializer2.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([initializer2])
+      .rpc();
 
   });
-  it("Check Treasury Balance", async () => {
+  it("Subscriber invokes Send Sol function to recipient", async () => {
+    const tres1_balance=await program.provider.connection.getBalance(treasuryPda)
+    console.log("Treasury Balance is (before subscriber transaction): ",tres1_balance/LAMPORTS_PER_SOL+" SOL");
+    const recipient = anchor.web3.Keypair.generate();
+    const amount = new BN(1 * LAMPORTS_PER_SOL);
+    const tx = await program.methods.sendSol(amount)
+    .accounts({
+      user:initializer.publicKey,
+      profile:profilePDA,
+      config:configPda,
+      treasury:treasuryPda,
+      recipient:recipient.publicKey,
+      systemProgram:SystemProgram.programId,
+  }).signers([initializer])
+  .rpc();
+  const balance=await program.provider.connection.getBalance(recipient.publicKey)
+  console.log("Recipient Balance is: ",balance/LAMPORTS_PER_SOL+" SOL");
+  const tres2_balance=await program.provider.connection.getBalance(treasuryPda)
+  console.log("Treasury Balance is (after subscriber transaction) (should remain same as is fee-exempted): ",tres2_balance/LAMPORTS_PER_SOL+" SOL");
+});
+it("Non-Subscriber invokes Send Sol function to recipient", async () => {
+  const tres1_balance=await program.provider.connection.getBalance(treasuryPda)
+  console.log("Treasury Balance is (before non-subscriber transaction): ",tres1_balance/LAMPORTS_PER_SOL+" SOL");
+  const recipient = anchor.web3.Keypair.generate();
+  const amount = new BN(1 * LAMPORTS_PER_SOL);
+  const tx = await program.methods.sendSol(amount)
+  .accounts({
+    user:initializer2.publicKey,
+    profile:profilePDA2,
+    config:configPda,
+    treasury:treasuryPda,
+    recipient:recipient.publicKey,
+    systemProgram:SystemProgram.programId,
+}).signers([initializer2])
+.rpc();
+const balance=await program.provider.connection.getBalance(recipient.publicKey)
+console.log("Recipient Balance is: ",balance/LAMPORTS_PER_SOL+" SOL");
+const tres2_balance=await program.provider.connection.getBalance(treasuryPda)
+const configAccounts=await program.account.config.fetch(configPda)
+console.log("Treasury Balance is (after non-subscriber transaction)(should deduct",configAccounts.feeBasisPoints/100,"% fee): ",tres2_balance/LAMPORTS_PER_SOL+" SOL");
+});
+it("Checking remaining tx for subscriber", async () => {
+  const profileAccount=await program.account.profile.fetch(profilePDA)
+  console.log("Remaining Transactions for",(profileAccount.name).toString(),"are: ",(profileAccount.remainingTx).toString());
+
+});
+it("Check Treasury Balance", async () => {
     const balance=await program.provider.connection.getBalance(treasuryPda)
     console.log("Treasury Balance is: ",balance/LAMPORTS_PER_SOL+" SOL");
-  });
+});
   it("Admin withdraw from treasury to recipient", async () => {
     const recipient = anchor.web3.Keypair.generate();
     const amount = new BN(0.5 * LAMPORTS_PER_SOL);
@@ -147,7 +214,7 @@ describe("sagent", () => {
         .rpc();
     } catch (error) {
       assert(error.message,"Error Code: Unauthorized");
-      console.log("Error Code: Unauthorized is returned as expected.")
+      console.log("Error Code: Unauthorized Error Code is returned as expected.")
       return;
     }
 
@@ -169,6 +236,4 @@ describe("sagent", () => {
   });
 });
 
-function instanceOf(error: any, Error: ErrorConstructor): any {
-  throw new Error("Function not implemented.");
-}
+

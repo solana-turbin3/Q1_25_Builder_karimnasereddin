@@ -22,6 +22,9 @@ pub mod sagent {
     pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
         ctx.accounts.execute_withdraw(amount)
     }
+    pub fn send_sol(ctx: Context<SendSol>, amount: u64) -> Result<()> {
+        ctx.accounts.send_sol(amount)
+    }
     pub fn close(ctx: Context<Close>) -> Result<()>{
         ctx.accounts.close()
     }

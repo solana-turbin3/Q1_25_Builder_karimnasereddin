@@ -34,7 +34,7 @@ pub struct Subscribe<'info> {
 impl<'info> Subscribe<'info> {
     pub fn subscribe(&mut self) -> Result<()> {
         // Transfer SOL from initializer to treasury
-        let transfer_instruction = system_program::Transfer {
+        let transfer_instruction_accounts = system_program::Transfer {
             from: self.initializer.to_account_info(),
             to: self.treasury.to_account_info(),
         };
@@ -42,7 +42,7 @@ impl<'info> Subscribe<'info> {
         system_program::transfer(
             CpiContext::new(
                 self.system_program.to_account_info(),
-                transfer_instruction
+                transfer_instruction_accounts
             ),
             self.config.subscription_price
         )?;
