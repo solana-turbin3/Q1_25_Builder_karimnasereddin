@@ -32,7 +32,7 @@ pub system_program: Program<'info, System>,
 
 
 impl<'info> Initialize<'info> {
-    pub fn init(&mut self, admin: Pubkey,fee_basis_points: u16, subscription_price: u64, subscription_allowance: u64) -> Result<()> {
+    pub fn init(&mut self, admin: Pubkey,fee_basis_points: u16, subscription_price: u64, subscription_allowance: u64,bumps: &InitializeBumps) -> Result<()> {
       self.config.set_inner(Config {
         admin,
         fee_basis_points,
@@ -40,6 +40,8 @@ impl<'info> Initialize<'info> {
         subscription_allowance,
         treasury: self.treasury.key(),
         is_halted: false,
+        config_bump: bumps.config,
+        treasury_bump: bumps.treasury,
     });
       Ok(())
     }

@@ -2,6 +2,8 @@ import * as anchor from "@coral-xyz/anchor";
 import { BN, Program } from "@coral-xyz/anchor";
 import { Sagent } from "../target/types/sagent";
 import { LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
+import { assert } from "chai";
+
 
 describe("sagent", () => {
   anchor.setProvider(anchor.AnchorProvider.env());
@@ -94,16 +96,64 @@ describe("sagent", () => {
   });
   it("Checking remaining tx", async () => {
     const profileAccount=await program.account.profile.fetch(profilePDA)
-    console.log("Remaining Transactions are: ",profileAccount.remainingTx.toString());
+    console.log("Remaining Transactions for",(profileAccount.name).toString(),"are: ",(profileAccount.remainingTx).toString());
 
   });
   it("Check Treasury Balance", async () => {
     const balance=await program.provider.connection.getBalance(treasuryPda)
-    console.log("Treasury Balance is: ",(balance/LAMPORTS_PER_SOL).toString()+" SOL");
+    console.log("Treasury Balance is: ",balance/LAMPORTS_PER_SOL+" SOL");
+  });
+  it("Admin withdraw from treasury to recipient", async () => {
+    const recipient = anchor.web3.Keypair.generate();
+    const amount = new BN(0.5 * LAMPORTS_PER_SOL);
+    const tx = await program.methods.withdraw(amount)
+      .accounts({
+        admin: admin.publicKey,
+        config: configPda,
+        treasury: treasuryPda,
+        recipient: recipient.publicKey,
+        systemProgram: SystemProgram.programId
+      })
+      .signers([admin])
+      .rpc();
+
+    const balance = await program.provider.connection.getBalance(recipient.publicKey);
+    console.log("Recipient balance:", balance / LAMPORTS_PER_SOL, "SOL");
+    const tresbalance=await program.provider.connection.getBalance(treasuryPda)
+    console.log("Treasury Balance is:",tresbalance/LAMPORTS_PER_SOL+" SOL");
+  });
+  it("Malicious admin cannot withdraw funds", async () => {
+    const maliciousAdmin = anchor.web3.Keypair.generate();
+    const recipient = anchor.web3.Keypair.generate();
+    const amount = new BN(0.5 * LAMPORTS_PER_SOL);
+
+    // Fund malicious admin for fees
+    const airdrop = await program.provider.connection.requestAirdrop(
+      maliciousAdmin.publicKey,
+      0.1 * LAMPORTS_PER_SOL
+    );
+    await program.provider.connection.confirmTransaction(airdrop);
+
+    try {
+      await program.methods.withdraw(amount)
+        .accounts({
+          admin: maliciousAdmin.publicKey,  // Using unauthorized admin
+          config: configPda,
+          treasury: treasuryPda,
+          recipient: recipient.publicKey,
+          systemProgram: SystemProgram.programId
+        })
+        .signers([maliciousAdmin])
+        .rpc();
+    } catch (error) {
+      assert(error.message,"Error Code: Unauthorized");
+      console.log("Error Code: Unauthorized is returned as expected.")
+      return;
+    }
+
+    throw new Error("Should have failed but didn't");
   });
   it("User Profile Account Closed", async () => {
-
-
     // Execute the transaction
     const tx = await program.methods
       .close() 
@@ -115,7 +165,10 @@ describe("sagent", () => {
       .signers([initializer])
       .rpc();
 
-    console.log("Transaction signature:", tx);
+    console.log("Account Closed signature:", tx);
   });
-
 });
+
+function instanceOf(error: any, Error: ErrorConstructor): any {
+  throw new Error("Function not implemented.");
+}

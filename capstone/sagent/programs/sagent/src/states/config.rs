@@ -17,6 +17,8 @@ pub struct Config {
     /// Additional params
     pub treasury: Pubkey, // Treasury address
     pub is_halted: bool,  // Emergency stop
+    pub config_bump: u8,
+    pub treasury_bump: u8,  // Add this field
 }
 
 impl Space for Config {
@@ -27,5 +29,7 @@ impl Space for Config {
     + 8    // subscription_allowance: u64 
     + 32    // treasury : Pubkey
     + 1     // is_halted: bool
+    + 1     // bump: u8
+    + 1     // treasury_bump: u8
     ;
 }
