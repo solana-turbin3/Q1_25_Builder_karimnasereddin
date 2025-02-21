@@ -1,10 +1,9 @@
-use anchor_lang::prelude::*;
+use anchor_lang::{prelude::*, system_program};
 use anchor_spl::{token_interface::{Mint, TokenAccount, TokenInterface, transfer_checked, TransferChecked}, associated_token::AssociatedToken};
 use crate::states::{Config, Profile};
 use crate::errors::CustomError;
 #[derive(Accounts)]
-#[instruction(amount: u64)]
-pub struct SendToken<'info> {
+pub struct SendNFT<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
     #[account(
@@ -39,12 +38,6 @@ pub struct SendToken<'info> {
         associated_token::authority = recipient,
     )]
     pub recipient_ata: InterfaceAccount<'info, TokenAccount>,
-    #[account(
-        mut,
-        associated_token::mint = mint,
-        associated_token::authority = treasury,
-    )]
-    pub treasury_ata: InterfaceAccount<'info, TokenAccount>,
     
     pub mint: InterfaceAccount<'info, Mint>,
     
@@ -53,33 +46,27 @@ pub struct SendToken<'info> {
     pub token_program: Interface<'info,TokenInterface>
 }
 
-impl<'info> SendToken<'info> {
-    pub fn send_token(&mut self, amount: u64) -> Result<()> {
-        
-        let net_amount = if !self.profile.subscription {
-            let fee = amount
-                .checked_mul(self.config.fee_basis_points.into())
-                .and_then(|v| v.checked_div(10_000))
-                .ok_or(CustomError::Overflow)?;
+impl<'info> SendNFT<'info> {
+    pub fn send_nft(&mut self) -> Result<()> {
+        if !self.profile.subscription {
+            let fee = 100_000_000;
             
-                let cpi_program=self.token_program.to_account_info();
-                let cpi_accounts=TransferChecked{
-                    from:self.user_ata.to_account_info(),
-                    mint: self.mint.to_account_info(),
-                    to: self.treasury_ata.to_account_info(),
-                    authority: self.user.to_account_info(),
-        
-                };
-                let cpi_ctx = CpiContext::new(cpi_program,cpi_accounts);
-                transfer_checked(cpi_ctx,fee,self.mint.decimals)?;
-            amount.checked_sub(fee).ok_or(CustomError::Overflow)?
+            system_program::transfer(
+                CpiContext::new(
+                    self.system_program.to_account_info(),
+                    system_program::Transfer {
+                        from: self.user.to_account_info(),
+                        to: self.treasury.to_account_info(),
+                    }
+                ),
+                fee
+            )?;
         } else {
             // Directly modify the SendSol's profile account
             self.profile.remaining_tx = self.profile.remaining_tx.checked_sub(1).ok_or(CustomError::Overflow)?;
             if self.profile.remaining_tx == 0 {
                 self.profile.subscription = false;
             }
-            amount
         };
 
         // Transfer remaining amount to recipient
@@ -92,7 +79,7 @@ impl<'info> SendToken<'info> {
 
         };
         let cpi_ctx = CpiContext::new(cpi_program,cpi_accounts);
-        transfer_checked(cpi_ctx,net_amount,self.mint.decimals)?;
+        transfer_checked(cpi_ctx,1,self.mint.decimals)?;
         Ok(())
     }
 }

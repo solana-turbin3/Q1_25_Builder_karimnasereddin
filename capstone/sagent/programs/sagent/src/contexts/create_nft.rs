@@ -33,9 +33,6 @@ pub struct CreateNFT<'info> {
 
 impl<'info> CreateNFT<'info> {
     pub fn create_nft(&mut self,metadata: InitNFTParams) -> Result<()> {
-
-
-
         let token_data: DataV2 = DataV2 {
             name: metadata.name,
             symbol: metadata.symbol,
@@ -63,7 +60,7 @@ impl<'info> CreateNFT<'info> {
         create_metadata_accounts_v3(
             metadata_ctx,
             token_data,
-            false,
+            false, 
             true,
             None,
         )?;

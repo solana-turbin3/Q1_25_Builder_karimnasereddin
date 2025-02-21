@@ -37,6 +37,15 @@ pub mod sagent {
     pub fn create_mint(ctx: Context<CreateMint>, metadata: InitTokenParams) -> Result<()> {
         ctx.accounts.create_mint(metadata)
     }
+    pub fn create_nft(ctx: Context<CreateNFT>, metadata: InitNFTParams) -> Result<()> {
+        ctx.accounts.create_nft(metadata)
+    }
+    pub fn mint_nft(ctx: Context<MintNFT>) -> Result<()> {
+        ctx.accounts.mint_nft()
+    }
+    pub fn send_nft(ctx: Context<SendNFT>) -> Result<()> {
+        ctx.accounts.send_nft()
+    }
 }
 
 

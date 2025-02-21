@@ -3,7 +3,7 @@ import { BN, Program } from "@coral-xyz/anchor";
 import { Sagent } from "../target/types/sagent";
 import { LAMPORTS_PER_SOL, PublicKey, SystemProgram, Keypair, Account, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 import { assert } from "chai";
-import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, getOrCreateAssociatedTokenAccount, getAssociatedTokenAddress, mintTo,transferChecked, memoTransferInstructionData } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, getOrCreateAssociatedTokenAccount, getAssociatedTokenAddress, mintTo,transferChecked, memoTransferInstructionData,mint } from "@solana/spl-token";
 
 describe("sagent", () => {
   anchor.setProvider(anchor.AnchorProvider.env());
@@ -13,6 +13,7 @@ describe("sagent", () => {
   const initializer2 = anchor.web3.Keypair.generate();
   const mint = anchor.web3.Keypair.generate();
   const TOKEN_METADATA_PROGRAM_ID = new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
+  const mint_nft=anchor.web3.Keypair.generate();
 
   const [configPda, configBump] = PublicKey.findProgramAddressSync(
     [anchor.utils.bytes.utf8.encode("config")],
@@ -389,6 +390,93 @@ it("Check Treasury Balance", async () => {
     let treasury_balance=(await program.provider.connection.getTokenAccountBalance(treasuryAta.address)).value.amount
     console.log("Treasury Token balance is(+fee deducted):",treasury_balance);
   });
+  it("Setup NFT Mint", async () => {
+    const [metadataAddress] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("metadata"),
+        TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+        mint_nft.publicKey.toBuffer(),
+      ],
+      TOKEN_METADATA_PROGRAM_ID
+    );
+    let metadata={
+      name:"Rugs and Stuff",
+      symbol:"RUG",
+      uri:"https://bafkreibk3covs5ltyqxa272uodhculbr6kea6betidfwy3ajsav2vjzyum.ipfs.nftstorage.link",
+      decimals:0,
+    }
+    const tx = await program.methods.createNft(metadata).
+    accountsPartial({
+      metadata: metadataAddress,
+      mint:mint_nft.publicKey,
+      signer:initializer.publicKey,
+      rent: SYSVAR_RENT_PUBKEY,
+      systemProgram: SystemProgram.programId,
+      tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
+      tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
+    })
+    .signers([initializer,mint_nft])
+    .rpc();
+
+    console.log("NFT Mint Created:", mint_nft.publicKey.toBase58());
+  });
+  it("Mint NFT to subscriber", async () => {
+    let user_ata=await getOrCreateAssociatedTokenAccount(
+      program.provider.connection,
+      initializer,
+      mint_nft.publicKey,
+      initializer.publicKey,
+    );
+
+    const tx = await program.methods.mintNft()
+    .accountsPartial({
+      user:initializer.publicKey,
+      mint:mint_nft.publicKey,
+      treasury:treasuryPda,
+      config:configPda,
+      tokenProgram:TOKEN_PROGRAM_ID,
+      associatedTokenProgram:ASSOCIATED_TOKEN_PROGRAM_ID,
+      systemProgram:SystemProgram.programId,
+    })
+    .signers([initializer])
+    .rpc();
+    const user_balance=await program.provider.connection.getTokenAccountBalance(user_ata.address)
+    console.log("Subscriber token balance is:",user_balance.value.amount);
+  });
+  it("Sending NFT to recipient", async () => {
+    
+    const recipient = anchor.web3.Keypair.generate();
+    let user_ata=await getOrCreateAssociatedTokenAccount(
+      program.provider.connection,
+      initializer,
+      mint_nft.publicKey,
+      initializer.publicKey,
+    );
+    const recipientAta = await getOrCreateAssociatedTokenAccount(
+      program.provider.connection,
+      initializer,
+      mint_nft.publicKey,
+      recipient.publicKey,
+    );
+
+
+    const tx = await program.methods.sendNft()
+    .accountsPartial({
+      user:initializer.publicKey,
+      recipient:recipient.publicKey,
+      mint:mint_nft.publicKey,
+      treasury:treasuryPda,
+      config:configPda,
+      tokenProgram:TOKEN_PROGRAM_ID,
+      associatedTokenProgram:ASSOCIATED_TOKEN_PROGRAM_ID,
+      systemProgram:SystemProgram.programId,
+    })
+    .signers([initializer])
+    .rpc();
+    let recipient_balance=(await program.provider.connection.getTokenAccountBalance(recipientAta.address)).value.amount
+    console.log("Recipient Token balance is:",recipient_balance);
+  });
+
   it("Checking remaining tx for subscriber", async () => {
     const profileAccount=await program.account.profile.fetch(profilePDA)
     console.log("Remaining Transactions for",(profileAccount.name).toString(),"are: ",(profileAccount.remainingTx).toString());
@@ -408,9 +496,9 @@ it("Check Treasury Balance", async () => {
 
     console.log("Account Closed signature:", tx);
   });
-  it("Pause to inspect", (done) => {
-    setTimeout(() => done(), 999_000);
-  }).timeout(999_000);
+  // it("Pause to inspect", (done) => {
+  //   setTimeout(() => done(), 999_000);
+  // }).timeout(999_000);
 });
 
 

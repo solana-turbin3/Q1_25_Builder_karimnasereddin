@@ -8,7 +8,8 @@ pub mod send_token;
 pub mod mint_token;
 pub mod create_mint;
 pub mod create_nft;
-
+pub mod mint_nft;
+pub mod send_nft;
 
 
 pub use init::*;
@@ -21,3 +22,5 @@ pub use send_token::*;
 pub use mint_token::*;
 pub use create_mint::*;
 pub use create_nft::*;
+pub use mint_nft::*;
+pub use send_nft::*;
