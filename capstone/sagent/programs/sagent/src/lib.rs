@@ -25,11 +25,18 @@ pub mod sagent {
     pub fn send_sol(ctx: Context<SendSol>, amount: u64) -> Result<()> {
         ctx.accounts.send_sol(amount)
     }
+    pub fn send_token(ctx: Context<SendToken>, amount: u64) -> Result<()> {
+        ctx.accounts.send_token(amount)
+    }
     pub fn close(ctx: Context<Close>) -> Result<()>{
         ctx.accounts.close()
     }
-
-
+    pub fn mint_token(ctx: Context<MintToken>, amount: u64) -> Result<()> {
+        ctx.accounts.mint_token(amount)
+    }
+    pub fn create_mint(ctx: Context<CreateMint>, metadata: InitTokenParams) -> Result<()> {
+        ctx.accounts.create_mint(metadata)
+    }
 }
 
 
