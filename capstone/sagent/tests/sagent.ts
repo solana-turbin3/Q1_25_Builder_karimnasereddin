@@ -537,7 +537,7 @@ it("Admin withdraws 0.5 SOL from treasury to recipient", async () => {
     console.log("Config Admin:", configAccounts.admin.toString());
     console.log("Transaction Fee Percentage:", configAccounts.feeBasisPoints/100 + "%");
     console.log("Subscription Price:", (configAccounts.subscriptionPrice.toNumber())/LAMPORTS_PER_SOL + " SOL");
-    console.log("Subscription TX Allowance:", configAccounts.subscriptionAllowance.toString());
+    console.log("Subscription TX Allowance (fee-exempt):", configAccounts.subscriptionAllowance.toString());
     console.log("Treasury SOL Balance:", treasuryBalance/LAMPORTS_PER_SOL + " SOL");
     console.log("Treasury Token Balance:", treasuryTokenBalance);
     console.log("===========================\n");
