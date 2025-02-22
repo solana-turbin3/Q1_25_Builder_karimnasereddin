@@ -532,6 +532,7 @@ it("Admin withdraws 0.5 SOL from treasury to recipient", async () => {
     const nftATA = await getOrCreateAssociatedTokenAccount(program.provider.connection, initializer, mint_nft.publicKey, initializer.publicKey);
 
     // Consolidated logging with all previous metrics
+
     console.log("\n=== Protocol Statistics ===");
     console.log("Config Admin:", configAccounts.admin.toString());
     console.log("Transaction Fee Percentage:", configAccounts.feeBasisPoints/100 + "%");
