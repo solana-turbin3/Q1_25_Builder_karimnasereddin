@@ -485,7 +485,7 @@ it("Admin withdraw from treasury to recipient", async () => {
   
   it("Sending NFT to recipient", async () => {
     
-    const recipient = anchor.web3.Keypair.generate();
+
     let user_ata=await getOrCreateAssociatedTokenAccount(
       program.provider.connection,
       initializer,
@@ -496,14 +496,14 @@ it("Admin withdraw from treasury to recipient", async () => {
       program.provider.connection,
       initializer,
       mint_nft.publicKey,
-      recipient.publicKey,
+      recipientS.publicKey,
     );
 
 
     const tx = await program.methods.sendNft()
     .accountsPartial({
       user:initializer.publicKey,
-      recipient:recipient.publicKey,
+      recipient:recipientS.publicKey,
       mint:mint_nft.publicKey,
       treasury:treasuryPda,
       config:configPda,
@@ -523,6 +523,7 @@ it("Admin withdraw from treasury to recipient", async () => {
     const configAccounts = await program.account.config.fetch(configPda);
     const treasuryBalance = await program.provider.connection.getBalance(treasuryPda);
     const recipientSAta=await getOrCreateAssociatedTokenAccount(program.provider.connection,initializer,mint.publicKey,recipientS.publicKey,true)
+    const recipientSNFT=await getOrCreateAssociatedTokenAccount(program.provider.connection,initializer,mint_nft.publicKey,recipientS.publicKey,true)
     const recipientNAta=await getOrCreateAssociatedTokenAccount(program.provider.connection,initializer,mint.publicKey,recipientN.publicKey,true)
     const treasuryAta=await getOrCreateAssociatedTokenAccount(program.provider.connection,initializer,mint.publicKey,treasuryPda,true)
     const treasuryTokenBalance = (await program.provider.connection.getTokenAccountBalance(treasuryAta.address)).value.amount;
@@ -541,16 +542,17 @@ it("Admin withdraw from treasury to recipient", async () => {
     console.log("Name:", (await program.account.profile.fetch(profilePDA)).name.toString());
     console.log("Subscriber:", (await program.account.profile.fetch(profilePDA)).subscription.toString());
     console.log("Remaining Transactions (fee-exempt):", (await program.account.profile.fetch(profilePDA)).remainingTx.toString());
-    console.log("Subscriber Token Balance:", (await program.provider.connection.getTokenAccountBalance(user1ATA.address)).value.amount);
+    console.log("Token Balance:", (await program.provider.connection.getTokenAccountBalance(user1ATA.address)).value.amount);
     console.log("NFT Balance:", (await program.provider.connection.getTokenAccountBalance(nftATA.address)).value.amount);
     console.log("Recipient SOL Balance:", (await program.provider.connection.getBalance(recipientS.publicKey))/LAMPORTS_PER_SOL + " SOL");
     console.log("Recipient Token Balance:", (await program.provider.connection.getTokenAccountBalance(recipientSAta.address)).value.amount);
+    console.log("Recipient NFT Balance:", (await program.provider.connection.getTokenAccountBalance(recipientSNFT.address)).value.amount);
     console.log("===========================\n");
     console.log("=== Non-Subscriber Statistics ===");
     console.log("Name:", (await program.account.profile.fetch(profilePDA2)).name.toString());
     console.log("Subscriber:", (await program.account.profile.fetch(profilePDA2)).subscription.toString());
     console.log("Remaining Transactions (fee-exempt):", (await program.account.profile.fetch(profilePDA2)).remainingTx.toString());
-    console.log("Non-Subscriber Token Balance:", (await program.provider.connection.getTokenAccountBalance(user2ATA.address)).value.amount);
+    console.log("Token Balance:", (await program.provider.connection.getTokenAccountBalance(user2ATA.address)).value.amount);
     console.log("Recipient SOL Balance:", (await program.provider.connection.getBalance(recipientN.publicKey))/LAMPORTS_PER_SOL + " SOL");
     console.log("Recipient Token Balance:", (await program.provider.connection.getTokenAccountBalance(recipientNAta.address)).value.amount);
     console.log("===========================\n");
