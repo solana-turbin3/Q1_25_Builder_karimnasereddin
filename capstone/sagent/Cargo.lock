@@ -241,6 +241,7 @@ dependencies = [
  "anchor-lang",
  "mpl-token-metadata 4.1.2",
  "spl-associated-token-account",
+ "spl-memo",
  "spl-pod",
  "spl-token",
  "spl-token-2022",
@@ -1611,6 +1612,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "raydium-clmm-cpi"
+version = "0.1.0"
+source = "git+https://github.com/raydium-io/raydium-cpi?branch=anchor-0.30.1#f4cd77f78a19e271e9d4cc5c0561eaff42fd14ba"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+]
+
+[[package]]
+name = "raydium-cpmm-cpi"
+version = "0.1.0"
+source = "git+https://github.com/raydium-io/raydium-cpi?branch=anchor-0.30.1#f4cd77f78a19e271e9d4cc5c0561eaff42fd14ba"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+]
+
+[[package]]
+name = "raydium-locking-cpi"
+version = "0.1.0"
+source = "git+https://github.com/raydium-io/raydium-cpi?branch=anchor-0.30.1#f4cd77f78a19e271e9d4cc5c0561eaff42fd14ba"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+ "raydium-clmm-cpi",
+ "raydium-cpmm-cpi",
+]
+
+[[package]]
 name = "rayon"
 version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1702,6 +1732,8 @@ dependencies = [
  "anchor-lang",
  "anchor-spl",
  "mpl-token-metadata 5.1.0",
+ "raydium-cpmm-cpi",
+ "raydium-locking-cpi",
 ]
 
 [[package]]

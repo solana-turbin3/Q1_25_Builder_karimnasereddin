@@ -6,6 +6,7 @@ pub mod contexts;
 pub use states::*;
 pub use contexts::*;
 pub mod errors;
+mod constants;
 
 #[program]
 pub mod sagent {
@@ -31,9 +32,9 @@ pub mod sagent {
     pub fn close(ctx: Context<Close>) -> Result<()>{
         ctx.accounts.close()
     }
-    pub fn mint_token(ctx: Context<MintToken>, amount: u64) -> Result<()> {
-        ctx.accounts.mint_token(amount)
-    }
+    // pub fn mint_token(ctx: Context<MintToken>, amount: u64) -> Result<()> {
+    //     ctx.accounts.mint_token(amount)
+    // }
     pub fn create_mint(ctx: Context<CreateMint>, metadata: InitTokenParams) -> Result<()> {
         ctx.accounts.create_mint(metadata)
     }
@@ -46,6 +47,21 @@ pub mod sagent {
     pub fn send_nft(ctx: Context<SendNFT>) -> Result<()> {
         ctx.accounts.send_nft()
     }
+    pub fn create_cpmm_pool(
+        ctx: Context<CreateCpmmPool>,
+        funding_amount: Option<u64>,
+    ) -> Result<()> {
+        ctx.accounts.issue_tokens()?;
+        ctx.accounts.revoke_mint_authority()?;
+        ctx.accounts.create_cpmm_pool(funding_amount)
+    }
+    pub fn lock_cpmm_liquidity(ctx: Context<LockCpmmLiquidity>) -> Result<()> {
+        ctx.accounts.lock_cpmm_cpi()
+    }
+    pub fn swap(ctx: Context<Swap>, amount_in: u64, minimum_amount_out: u64) -> Result<()> {
+        ctx.accounts.swap(amount_in, minimum_amount_out)
+    }
 }
+
 
 

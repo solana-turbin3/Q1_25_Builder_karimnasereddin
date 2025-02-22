@@ -18,7 +18,6 @@ pub struct CreateMint<'info> {
         payer = signer,
         mint::decimals = params.decimals,
         mint::authority = signer.key(),
-        mint::freeze_authority = signer.key(),
     )]
     pub mint: InterfaceAccount<'info, Mint>,
     #[account(mut)]
