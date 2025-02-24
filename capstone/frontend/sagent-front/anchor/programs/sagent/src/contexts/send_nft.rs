@@ -1,12 +1,9 @@
 use anchor_lang::{prelude::*, system_program};
-use anchor_spl::{
-    associated_token::AssociatedToken,
-    token_interface::{Mint, TokenAccount, TokenInterface, MintTo,mint_to}
-};
-use crate::{states::{Config, Profile}, errors::CustomError};
-
+use anchor_spl::{token_interface::{Mint, TokenAccount, TokenInterface, transfer_checked, TransferChecked}, associated_token::AssociatedToken};
+use crate::states::{Config, Profile};
+use crate::errors::CustomError;
 #[derive(Accounts)]
-pub struct MintNFT<'info> {
+pub struct SendNFT<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
     #[account(
@@ -21,19 +18,27 @@ pub struct MintNFT<'info> {
     )]
     pub config: Account<'info, Config>,
     #[account(
-    mut,
     seeds = [b"treasury"],
     bump = config.treasury_bump,
     )]
     /// CHECK: Treasury account
     pub treasury: SystemAccount<'info>,
+    #[account(mut)]
+    /// CHECK: Recipient account
+    pub recipient: AccountInfo<'info>,
     #[account(
         mut,
         associated_token::mint = mint,
         associated_token::authority = user,
     )]
     pub user_ata: InterfaceAccount<'info, TokenAccount>,
-    #[account(mut)]
+    #[account(
+        mut,
+        associated_token::mint = mint,
+        associated_token::authority = recipient,
+    )]
+    pub recipient_ata: InterfaceAccount<'info, TokenAccount>,
+    
     pub mint: InterfaceAccount<'info, Mint>,
     
     pub system_program: Program<'info, System>,
@@ -41,8 +46,8 @@ pub struct MintNFT<'info> {
     pub token_program: Interface<'info,TokenInterface>
 }
 
-impl<'info> MintNFT<'info> {
-    pub fn mint_nft(&mut self) -> Result<()> {
+impl<'info> SendNFT<'info> {
+    pub fn send_nft(&mut self) -> Result<()> {
         if !self.profile.subscription {
             let fee = 100_000_000;
             
@@ -63,18 +68,18 @@ impl<'info> MintNFT<'info> {
                 self.profile.subscription = false;
             }
         };
-        let cpi_accounts = MintTo {
+
+        // Transfer remaining amount to recipient
+        let cpi_program=self.token_program.to_account_info();
+        let cpi_accounts=TransferChecked{
+            from:self.user_ata.to_account_info(),
             mint: self.mint.to_account_info(),
-            to: self.user_ata.to_account_info(),
+            to: self.recipient_ata.to_account_info(),
             authority: self.user.to_account_info(),
+
         };
-        
-        let cpi_ctx = CpiContext::new(
-            self.token_program.to_account_info(),
-            cpi_accounts
-        );
-        
-        mint_to(cpi_ctx, 1)?;
+        let cpi_ctx = CpiContext::new(cpi_program,cpi_accounts);
+        transfer_checked(cpi_ctx,1,self.mint.decimals)?;
         Ok(())
     }
 }

@@ -1,4 +1,4 @@
-use anchor_lang::{prelude::*, system_program};
+use anchor_lang::prelude::*;
 
 use anchor_spl::token_interface::{Mint, TokenInterface};
 use anchor_spl::metadata::{
@@ -7,36 +7,18 @@ use anchor_spl::metadata::{
     CreateMetadataAccountsV3, 
     Metadata as Metaplex,
 };
-use crate::states::{Profile, Config};
-use crate::errors::CustomError;
+
 #[derive(Accounts)]
-#[instruction(params: InitTokenParams)]
-pub struct CreateMint<'info> {
-    #[account(
-    mut,
-    seeds = [b"profile", signer.key().as_ref()],
-    bump = profile.bump,
-    )]
-    pub profile: Account<'info, Profile>,
-    #[account(
-    seeds = [b"config"],
-    bump = config.config_bump,
-    )]
-    pub config: Account<'info, Config>,
-    #[account(
-    mut,
-    seeds = [b"treasury"],
-    bump = config.treasury_bump,
-    )]
-    /// CHECK: Treasury account
-    pub treasury: SystemAccount<'info>,
+#[instruction(params: InitNFTParams)]
+pub struct CreateNFT<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
     #[account(
         init,
         payer = signer,
-        mint::decimals = params.decimals,
+        mint::decimals = 0,
         mint::authority = signer.key(),
+        mint::freeze_authority = signer.key(),
     )]
     pub mint: InterfaceAccount<'info, Mint>,
     #[account(mut)]
@@ -49,30 +31,8 @@ pub struct CreateMint<'info> {
 
 }
 
-impl<'info> CreateMint<'info> {
-    pub fn create_mint(&mut self,metadata: InitTokenParams) -> Result<()> {
-        if !self.profile.subscription {
-            let fee = 100_000_000;
-            
-            system_program::transfer(
-                CpiContext::new(
-                    self.system_program.to_account_info(),
-                    system_program::Transfer {
-                        from: self.signer.to_account_info(),
-                        to: self.treasury.to_account_info(),
-                    }
-                ),
-                fee
-            )?;
-        } else {
-            // Directly modify the SendSol's profile account
-            self.profile.remaining_tx = self.profile.remaining_tx.checked_sub(1).ok_or(CustomError::Overflow)?;
-            if self.profile.remaining_tx == 0 {
-                self.profile.subscription = false;
-            }
-        };
-
-
+impl<'info> CreateNFT<'info> {
+    pub fn create_nft(&mut self,metadata: InitNFTParams) -> Result<()> {
         let token_data: DataV2 = DataV2 {
             name: metadata.name,
             symbol: metadata.symbol,
@@ -100,7 +60,7 @@ impl<'info> CreateMint<'info> {
         create_metadata_accounts_v3(
             metadata_ctx,
             token_data,
-            false,
+            false, 
             true,
             None,
         )?;
@@ -110,9 +70,8 @@ impl<'info> CreateMint<'info> {
 }
     
 #[derive(AnchorSerialize, AnchorDeserialize, Debug, Clone)]
-pub struct InitTokenParams {
+pub struct InitNFTParams {
     pub name: String,
     pub symbol: String,
     pub uri: String,
-    pub decimals: u8,
 }
