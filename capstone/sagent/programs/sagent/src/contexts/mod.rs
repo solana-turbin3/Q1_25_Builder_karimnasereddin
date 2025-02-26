@@ -13,6 +13,7 @@ pub mod send_nft;
 pub mod create_cpmm_pool;
 pub mod swap;
 pub mod lock_cpmm_lp;
+pub mod update;
 
 
 pub use init::*;
@@ -30,3 +31,4 @@ pub use send_nft::*;
 pub use create_cpmm_pool::*;
 pub use swap::*;
 pub use lock_cpmm_lp::*;
+pub use update::*;

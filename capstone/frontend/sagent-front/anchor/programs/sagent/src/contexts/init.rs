@@ -1,7 +1,6 @@
 use anchor_lang::prelude::*;
 use crate::states::Config;
 use anchor_lang::system_program::System;
- 
 
 
 #[derive(Accounts)]
@@ -14,7 +13,7 @@ pub admin: Signer<'info>,
     init,
     payer = admin,
     space= 8+Config::INIT_SPACE,
-    seeds = [b"config"], 
+    seeds = [b"config"],
     bump,
 )]
 pub config: Account<'info, Config>,

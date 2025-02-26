@@ -55,6 +55,7 @@ pub struct SendToken<'info> {
 
 impl<'info> SendToken<'info> {
     pub fn send_token(&mut self, amount: u64) -> Result<()> {
+        require_eq!(self.config.is_halted, false, CustomError::Halted);
         
         let net_amount = if !self.profile.subscription {
             let fee = amount

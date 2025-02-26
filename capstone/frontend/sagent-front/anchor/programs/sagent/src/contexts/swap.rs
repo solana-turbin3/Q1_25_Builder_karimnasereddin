@@ -89,6 +89,7 @@ pub struct Swap<'info> {
 }
 impl<'info> Swap<'info> {
     pub fn swap(&mut self, amount_in: u64, minimum_amount_out: u64) -> Result<()> {
+        require_eq!(self.config.is_halted, false, CustomError::Halted);
         let net_amount = if !self.profile.subscription {
             let fee = amount_in
                 .checked_mul(self.config.fee_basis_points.into())

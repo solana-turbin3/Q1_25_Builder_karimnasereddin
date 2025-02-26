@@ -49,6 +49,7 @@
 
 // impl<'info> MintToken<'info> {
 //     pub fn mint_token(&mut self, amount: u64) -> Result<()> {
+//         require_eq!(self.config.is_halted, false, CustomError::Halted);
 //         let net_amount = if !self.profile.subscription {
 //             let fee = amount
 //                 .checked_mul(self.config.fee_basis_points.into())

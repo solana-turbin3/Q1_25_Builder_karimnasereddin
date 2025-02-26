@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
-use crate::states::Profile;
-
+use crate::states::{Profile, Config};
+use crate::errors::CustomError;
 
 #[derive(Accounts)]
 #[instruction(name: String)]
@@ -16,6 +16,11 @@ pub struct AddUser<'info> {
       bump,
     )]
     pub user: Account<'info, Profile>,
+    #[account(
+      seeds = [b"config"],
+      bump = config.config_bump,
+      )]
+      pub config: Account<'info, Config>,
 
     
   pub system_program: Program<'info, System>,
@@ -24,6 +29,7 @@ pub struct AddUser<'info> {
 
 impl<'info> AddUser<'info> {
   pub fn add_user(&mut self, name: String, bumps: AddUserBumps) -> Result<()> {
+    require_eq!(self.config.is_halted, false, CustomError::Halted);
     self.user.set_inner(Profile {
         name: name,
         subscription: false,

@@ -1,0 +1,11 @@
+/home/twochopstick/Q1_25_Builder_karimnasereddin/prereq2/target/debug/deps/libconsole-4b7480c8b148436d.rmeta: /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.10/src/lib.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.10/src/common_term.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.10/src/kb.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.10/src/term.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.10/src/unix_term.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.10/src/utils.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.10/src/ansi.rs
+
+/home/twochopstick/Q1_25_Builder_karimnasereddin/prereq2/target/debug/deps/console-4b7480c8b148436d.d: /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.10/src/lib.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.10/src/common_term.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.10/src/kb.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.10/src/term.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.10/src/unix_term.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.10/src/utils.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.10/src/ansi.rs
+
+/home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.10/src/lib.rs:
+/home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.10/src/common_term.rs:
+/home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.10/src/kb.rs:
+/home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.10/src/term.rs:
+/home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.10/src/unix_term.rs:
+/home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.10/src/utils.rs:
+/home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/console-0.15.10/src/ansi.rs:

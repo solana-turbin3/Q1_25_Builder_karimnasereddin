@@ -5,7 +5,7 @@ pub enum CustomError {
     #[msg("Unauthorized access")]
     Unauthorized,
     #[msg("Program is halted")]
-    ProgramHalted,
+    Halted,
     #[msg("Integer overflow occurred")]
     Overflow,
 }

@@ -10,6 +10,7 @@ use raydium_cpmm_cpi::{
     states::{AmmConfig, OBSERVATION_SEED, POOL_LP_MINT_SEED, POOL_SEED, POOL_VAULT_SEED},
 };
 use crate::constants::{DEFAULT_DECIMALS, DEFAULT_SUPPLY, FUNDING_AMOUNT, WSOL_ID};
+
 /// This context allows us to create a raydium pool
 #[derive(Accounts)]
 pub struct CreateCpmmPool<'info> {
@@ -131,7 +132,7 @@ pub struct CreateCpmmPool<'info> {
 impl<'info> CreateCpmmPool<'info> {
 
     pub fn issue_tokens(&mut self) -> Result<()> {
-        let accounts = MintTo {
+            let accounts = MintTo {
             mint: self.token_mint.to_account_info(),
             to: self.creator_token_ata.to_account_info(),
             authority: self.creator.to_account_info(),

@@ -7,12 +7,19 @@ use anchor_spl::metadata::{
     CreateMetadataAccountsV3, 
     Metadata as Metaplex,
 };
+use crate::errors::CustomError;
+use crate::states::Config;
 
 #[derive(Accounts)]
 #[instruction(params: InitNFTParams)]
 pub struct CreateNFT<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
+    #[account(
+        seeds = [b"config"],
+        bump = config.config_bump,
+        )]
+        pub config: Account<'info, Config>,
     #[account(
         init,
         payer = signer,
@@ -33,6 +40,7 @@ pub struct CreateNFT<'info> {
 
 impl<'info> CreateNFT<'info> {
     pub fn create_nft(&mut self,metadata: InitNFTParams) -> Result<()> {
+        require_eq!(self.config.is_halted, false, CustomError::Halted);
         let token_data: DataV2 = DataV2 {
             name: metadata.name,
             symbol: metadata.symbol,

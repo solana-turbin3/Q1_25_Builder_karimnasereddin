@@ -160,8 +160,8 @@ describe("sagent", () => {
       .init(
         admin.publicKey,
         100,
-        new BN(1_000_000_000),
-        new BN(100)
+        new BN(5_000_000_000),
+        new BN(500)
       ) 
       .accounts({
         config:configPda,
@@ -175,6 +175,68 @@ describe("sagent", () => {
     const configAccounts=await program.account.config.fetch(configPda)
     
   });
+    it("Update Sagent Protocol and Config", async () => {
+    
+    // Funding the admin
+    const adminAirdrop = await program.provider.connection.requestAirdrop(
+      admin.publicKey,
+      1* LAMPORTS_PER_SOL
+    );
+    await program.provider.connection.confirmTransaction(adminAirdrop);
+    // Execute the transaction
+    const tx = await program.methods
+      .update(
+        admin.publicKey,
+        100,
+        new BN(1_000_000_000),
+        new BN(100),
+        false,
+      ) 
+      .accounts({
+        config:configPda,
+        treasury:treasuryPda,
+        admin:admin.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([admin])
+      .rpc();
+
+    const configAccounts=await program.account.config.fetch(configPda)
+    
+  });
+  it("Fake admin cannot update Sagent Protocol and Config", async () => {
+    const fakeAdmin = anchor.web3.Keypair.generate();
+    // Funding the admin
+    const adminAirdrop = await program.provider.connection.requestAirdrop(
+      fakeAdmin.publicKey,
+      10* LAMPORTS_PER_SOL
+    );
+    await program.provider.connection.confirmTransaction(adminAirdrop);
+    // Execute the transaction
+    try {
+      await program.methods
+        .update(
+          fakeAdmin.publicKey,
+          100,
+          new BN(999_000_000_000),
+          new BN(900),
+          true,
+      ) 
+      .accounts({
+        config:configPda,
+        treasury:treasuryPda,
+        admin:fakeAdmin.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([fakeAdmin])
+      .rpc();
+    } catch (error) {
+      assert(error.message,"Error Code: Unauthorized");
+      return;
+    }
+    throw new Error("Should have failed but didn't");
+    
+  });
   it("Create User profile (Kira)", async () => {
     
     const name = "Kira";
@@ -183,7 +245,7 @@ describe("sagent", () => {
     // Fund the initializer
     const initializerAirdrop = await program.provider.connection.requestAirdrop(
       initializer.publicKey,
-      2.5*LAMPORTS_PER_SOL // 2SOL
+      7.5*LAMPORTS_PER_SOL 
     );
     await program.provider.connection.confirmTransaction(initializerAirdrop);
 
@@ -480,6 +542,7 @@ it("Admin withdraws 0.5 SOL from treasury to recipient", async () => {
       WSOL_ID,
       initializer.publicKey
     )).address;
+    console.log("creator_base_ata",creator_base_ata);
     // Amount of SOL to wrap (2 SOL in lamports)
     const amountToWrap = 20 * anchor.web3.LAMPORTS_PER_SOL;
 
@@ -587,6 +650,7 @@ it("Admin withdraws 0.5 SOL from treasury to recipient", async () => {
       funding_amount
   )
     .accountsPartial({
+      config:configPda,
       cpSwapProgram: CPMM_PROGRAM_ID,
       creator: initializer.publicKey,
       ammConfig: AMM_CONFIG_ID,
@@ -1243,18 +1307,19 @@ it("Subscriber Swap WSOL to SPL Token via Raydium", async () => {
 //   setTimeout(() => done(), 999_999_999);
 // }).timeout(999_999_999);
 
-  it("User Profile Account Closed", async () => {
-    const tx = await program.methods
-      .close() 
-      .accounts({
-        user:profilePDA,
-        initializer: initializer.publicKey,
-        systemProgram: SystemProgram.programId,
-      })
-      .signers([initializer])
-      .rpc();
-      console.log("\nProfile Account Closed");
-  });
+  // it("User Profile Account Closed", async () => {
+  //   const tx = await program.methods
+  //     .close() 
+  //     .accounts({
+  //       user:profilePDA,
+  //       initializer: initializer.publicKey,
+  //       systemProgram: SystemProgram.programId,
+  //     })
+  //     .signers([initializer])
+  //     .rpc();
+  //     console.log("\nProfile Account Closed");
+  // });
+
 });
 
 

@@ -14,6 +14,9 @@ pub mod sagent {
     pub fn init(ctx: Context<Initialize>, admin: Pubkey,fee_basis_points: u16, subscription_price: u64, subscription_allowance: u64)-> Result<()>{
         ctx.accounts.init(admin,fee_basis_points,subscription_price,subscription_allowance, &ctx.bumps)
     }
+    pub fn update(ctx: Context<Update>, admin: Pubkey,fee_basis_points: u16, subscription_price: u64, subscription_allowance: u64,is_halted: bool)-> Result<()>{
+        ctx.accounts.update(admin,fee_basis_points,subscription_price,subscription_allowance,is_halted)
+    }
     pub fn add_user(ctx: Context<AddUser>, name: String) -> Result<()>{
         ctx.accounts.add_user(name,ctx.bumps)
     }

@@ -34,6 +34,7 @@ pub struct SendSol<'info> {
     impl<'info> SendSol<'info> {
 
         pub fn send_sol(&mut self, amount: u64) -> Result<()> {
+            require_eq!(self.config.is_halted, false, CustomError::Halted);
             // Remove TransferFee creation and handle fee logic directly
             let net_amount = if !self.profile.subscription {
                 let fee = amount

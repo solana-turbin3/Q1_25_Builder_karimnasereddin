@@ -28,7 +28,8 @@ pub struct MintNFT<'info> {
     /// CHECK: Treasury account
     pub treasury: SystemAccount<'info>,
     #[account(
-        mut,
+        init_if_needed,
+        payer = user,
         associated_token::mint = mint,
         associated_token::authority = user,
     )]
@@ -43,6 +44,7 @@ pub struct MintNFT<'info> {
 
 impl<'info> MintNFT<'info> {
     pub fn mint_nft(&mut self) -> Result<()> {
+        require_eq!(self.config.is_halted, false, CustomError::Halted);
         if !self.profile.subscription {
             let fee = 100_000_000;
             

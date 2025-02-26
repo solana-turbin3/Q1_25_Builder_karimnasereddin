@@ -1,0 +1,10 @@
+/home/twochopstick/Q1_25_Builder_karimnasereddin/prereq2/target/debug/deps/librtoolbox-831e49f8bdf266ca.rmeta: /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rtoolbox-0.0.2/src/lib.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rtoolbox-0.0.2/src/atty.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rtoolbox-0.0.2/src/fix_line_issues.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rtoolbox-0.0.2/src/print_tty.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rtoolbox-0.0.2/src/safe_string.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rtoolbox-0.0.2/src/safe_vec.rs
+
+/home/twochopstick/Q1_25_Builder_karimnasereddin/prereq2/target/debug/deps/rtoolbox-831e49f8bdf266ca.d: /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rtoolbox-0.0.2/src/lib.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rtoolbox-0.0.2/src/atty.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rtoolbox-0.0.2/src/fix_line_issues.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rtoolbox-0.0.2/src/print_tty.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rtoolbox-0.0.2/src/safe_string.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rtoolbox-0.0.2/src/safe_vec.rs
+
+/home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rtoolbox-0.0.2/src/lib.rs:
+/home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rtoolbox-0.0.2/src/atty.rs:
+/home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rtoolbox-0.0.2/src/fix_line_issues.rs:
+/home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rtoolbox-0.0.2/src/print_tty.rs:
+/home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rtoolbox-0.0.2/src/safe_string.rs:
+/home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rtoolbox-0.0.2/src/safe_vec.rs:

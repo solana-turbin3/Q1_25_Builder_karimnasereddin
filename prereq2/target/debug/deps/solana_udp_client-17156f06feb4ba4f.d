@@ -1,0 +1,8 @@
+/home/twochopstick/Q1_25_Builder_karimnasereddin/prereq2/target/debug/deps/libsolana_udp_client-17156f06feb4ba4f.rmeta: /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-udp-client-1.18.26/src/lib.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-udp-client-1.18.26/src/nonblocking/mod.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-udp-client-1.18.26/src/nonblocking/udp_client.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-udp-client-1.18.26/src/udp_client.rs
+
+/home/twochopstick/Q1_25_Builder_karimnasereddin/prereq2/target/debug/deps/solana_udp_client-17156f06feb4ba4f.d: /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-udp-client-1.18.26/src/lib.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-udp-client-1.18.26/src/nonblocking/mod.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-udp-client-1.18.26/src/nonblocking/udp_client.rs /home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-udp-client-1.18.26/src/udp_client.rs
+
+/home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-udp-client-1.18.26/src/lib.rs:
+/home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-udp-client-1.18.26/src/nonblocking/mod.rs:
+/home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-udp-client-1.18.26/src/nonblocking/udp_client.rs:
+/home/twochopstick/.cargo/registry/src/index.crates.io-6f17d22bba15001f/solana-udp-client-1.18.26/src/udp_client.rs:

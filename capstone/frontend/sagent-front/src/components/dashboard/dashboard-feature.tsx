@@ -1,29 +1,34 @@
 'use client'
 
-import { AppHero } from '../ui/ui-layout'
+import { useWallet } from '@solana/wallet-adapter-react'
+import { WalletButton } from '../solana/solana-provider'
 
-const links: { label: string; href: string }[] = [
-  { label: 'Solana Docs', href: 'https://docs.solana.com/' },
-  { label: 'Solana Faucet', href: 'https://faucet.solana.com/' },
-  { label: 'Solana Cookbook', href: 'https://solanacookbook.com/' },
-  { label: 'Solana Stack Overflow', href: 'https://solana.stackexchange.com/' },
-  { label: 'Solana Developers GitHub', href: 'https://github.com/solana-developers/' },
-]
+import { ExplorerLink } from '../cluster/cluster-ui'
+import { useSagentProgram } from './sagent-data-access'
+import {  SagentCreate, SagentList } from './sagent-ui'
+
+
+import { AppHero,ellipsify } from '../ui/ui-layout'
+
 
 export default function DashboardFeature() {
+  const { getConfig } = useSagentProgram()
+  const { publicKey } = useWallet()
+
   return (
     <div>
-      <AppHero title="gm" subtitle="Say hi to your new Solana dApp." />
-      <div className="max-w-xl mx-auto py-6 sm:px-6 lg:px-8 text-center">
-        <div className="space-y-2">
-          <p>Here are some helpful links to get you started.</p>
-          {links.map((link, index) => (
-            <div key={index}>
-              <a href={link.href} className="link" target="_blank" rel="noopener noreferrer">
-                {link.label}
-              </a>
+      <AppHero title="Say hello to your on-chain assistant." subtitle="SAGENT - OC" />
+      <div className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="space-y-4">
+          {!getConfig.data && publicKey && (
+            <div className="card bg-base-300">
+              <div className="card-body">
+                <h2 className="card-title">Initialize Protocol</h2>
+                <SagentCreate />
+              </div>
             </div>
-          ))}
+          )}
+          <SagentList />
         </div>
       </div>
     </div>

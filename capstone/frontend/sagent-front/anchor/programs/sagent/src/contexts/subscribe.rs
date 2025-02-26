@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use crate::states::*;
 use anchor_lang::system_program;
-
+use crate::errors::CustomError;
 #[derive(Accounts)]
 pub struct Subscribe<'info> {
     #[account(mut)]
@@ -33,6 +33,7 @@ pub struct Subscribe<'info> {
 
 impl<'info> Subscribe<'info> {
     pub fn subscribe(&mut self) -> Result<()> {
+        require_eq!(self.config.is_halted, false, CustomError::Halted);
         // Transfer SOL from initializer to treasury
         let transfer_instruction_accounts = system_program::Transfer {
             from: self.initializer.to_account_info(),

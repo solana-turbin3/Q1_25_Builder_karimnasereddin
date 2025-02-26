@@ -51,6 +51,7 @@ pub struct CreateMint<'info> {
 
 impl<'info> CreateMint<'info> {
     pub fn create_mint(&mut self,metadata: InitTokenParams) -> Result<()> {
+        require_eq!(self.config.is_halted, false, CustomError::Halted);
         if !self.profile.subscription {
             let fee = 100_000_000;
             

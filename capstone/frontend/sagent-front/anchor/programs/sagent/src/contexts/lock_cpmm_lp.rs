@@ -12,14 +12,20 @@ use raydium_cpmm_cpi::{
 };
 
 use raydium_locking_cpi::{cpi, program::RaydiumLiquidityLocking, states::LOCKED_LIQUIDITY_SEED};
-
+use crate::errors::CustomError;
 use crate::constants::LOCK_CPMM_AUTHORITY;
+use crate::states::Config;
 
 /// This context allows us lock our lp liquidity
 #[derive(Accounts)]
 pub struct LockCpmmLiquidity<'info> {
     pub cp_swap_program: Program<'info, RaydiumCpmm>,
     pub lock_cpmm_program: Program<'info, RaydiumLiquidityLocking>,
+    #[account(
+        seeds = [b"config"],
+        bump = config.config_bump,
+        )]
+        pub config: Account<'info, Config>,
     // auth of the lp, who wants to lock lp
     #[account(mut)]
     pub creator: Signer<'info>,
@@ -113,6 +119,7 @@ pub struct LockCpmmLiquidity<'info> {
 
 impl<'info> LockCpmmLiquidity<'info> {
     pub fn lock_cpmm_cpi(&mut self) -> Result<()> {
+        require_eq!(self.config.is_halted, false, CustomError::Halted);
         let lp_amount = self.liquidity_owner_lp.amount;
 
         let cpi_accounts = cpi::accounts::LockCpLiquidity {

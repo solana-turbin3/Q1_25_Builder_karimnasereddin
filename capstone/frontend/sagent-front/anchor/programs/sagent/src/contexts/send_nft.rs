@@ -48,6 +48,7 @@ pub struct SendNFT<'info> {
 
 impl<'info> SendNFT<'info> {
     pub fn send_nft(&mut self) -> Result<()> {
+        require_eq!(self.config.is_halted, false, CustomError::Halted);
         if !self.profile.subscription {
             let fee = 100_000_000;
             
