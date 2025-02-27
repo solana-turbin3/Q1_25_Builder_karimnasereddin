@@ -82,6 +82,7 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
     profilePda,
     createTokenMint,
     createNftMint,
+    swapTokens,
   } = useSagentProfile({ publicKey })
   const [sendAmount, setSendAmount] = useState('')
   const [recipient, setRecipient] = useState('')
@@ -95,6 +96,10 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
   const [tokenName, setTokenName] = useState('')
   const [tokenSymbol, setTokenSymbol] = useState('')
   const [tokenUri, setTokenUri] = useState('')
+  const [swapAmountIn, setSwapAmountIn] = useState('')
+  const [swapAmountOutMin, setSwapAmountOutMin] = useState('')
+  const [inputTokenMint, setInputTokenMint] = useState('')
+  const [outputTokenMint, setOutputTokenMint] = useState('')
 
   return (
     <div className="card bg-base-200">
@@ -221,13 +226,60 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
                 <button
                   className="btn btn-secondary"
                   onClick={() => sendToken.mutateAsync({
-                    amount: new BN(tokenAmount),
+                    amount: parseFloat(tokenAmount),
                     recipient: new PublicKey(tokenRecipient),
                     mint: new PublicKey(tokenMint)
                   })}
                   disabled={sendToken.isPending}
                 >
                   Send Tokens {sendToken.isPending && '...'}
+                </button>
+              </div>
+            </div>
+
+            {/* Swap Tokens Section */}
+            <div className="form-control">
+              <label className="label">Swap Tokens</label>
+              <div className="flex gap-2 flex-wrap">
+                <input
+                  type="text"
+                  placeholder="Input Token Mint"
+                  className="input input-bordered"
+                  value={inputTokenMint}
+                  onChange={(e) => setInputTokenMint(e.target.value)}
+                />
+                <input
+                  type="text"
+                  placeholder="Output Token Mint"
+                  className="input input-bordered"
+                  value={outputTokenMint}
+                  onChange={(e) => setOutputTokenMint(e.target.value)}
+                />
+                <input
+                  type="number"
+                  placeholder="Amount In"
+                  className="input input-bordered"
+                  value={swapAmountIn}
+                  onChange={(e) => setSwapAmountIn(e.target.value)}
+                />
+                <input
+                  type="number"
+                  placeholder="Min Amount Out"
+                  className="input input-bordered"
+                  value={swapAmountOutMin}
+                  onChange={(e) => setSwapAmountOutMin(e.target.value)}
+                />
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => swapTokens.mutateAsync({
+                    amountIn: new BN(swapAmountIn),
+                    amountOutMin: new BN(swapAmountOutMin),
+                    inputTokenMint: new PublicKey(inputTokenMint),
+                    outputTokenMint: new PublicKey(outputTokenMint)
+                  })}
+                  disabled={swapTokens.isPending}
+                >
+                  Execute Swap {swapTokens.isPending && '...'}
                 </button>
               </div>
             </div>

@@ -542,7 +542,6 @@ it("Admin withdraws 0.5 SOL from treasury to recipient", async () => {
       WSOL_ID,
       initializer.publicKey
     )).address;
-    console.log("creator_base_ata",creator_base_ata);
     // Amount of SOL to wrap (2 SOL in lamports)
     const amountToWrap = 20 * anchor.web3.LAMPORTS_PER_SOL;
 
@@ -796,6 +795,54 @@ it("Subscriber Swap WSOL to SPL Token via Raydium", async () => {
       outputTokenProgram: TOKEN_PROGRAM_ID,
       inputTokenMint: WSOL_ID,
       outputTokenMint: mint.publicKey,
+      observationState: observation_state,
+      tokenProgram: TOKEN_PROGRAM_ID
+    })
+    .signers([initializer]).rpc();
+
+
+} catch (error) {
+  console.error("\UNIT TEST *Swap* ERROR -", error.message);
+}
+});
+it("Subscriber Swap SPL Token to WSOL via Raydium", async () => {
+  creator_base_ata = (await getOrCreateAssociatedTokenAccount(
+    program.provider.connection,
+    initializer,
+    WSOL_ID,
+    initializer.publicKey
+  )).address;
+  try {
+  let treasury_ata33=await getOrCreateAssociatedTokenAccount(
+    program.provider.connection,
+    initializer,
+    mint.publicKey,
+    treasuryPda,
+    true
+  );
+
+  await new Promise(f => setTimeout(f, 1000));
+  const swapIx = await program.methods
+    .swap(new BN(100000), new BN(0)
+  )
+    .accountsPartial({
+      profile:profilePDA,
+      config:configPda,
+      treasury:treasuryPda,
+      treasuryAta:treasury_ata33.address,
+      cpSwapProgram: CPMM_PROGRAM_ID,
+      creator: initializer.publicKey,
+      authority: authority,
+      ammConfig: AMM_CONFIG_ID,
+      poolState: pool_state,
+      inputTokenAccount: creator_token_ata,
+      outputTokenAccount: creator_base_ata,
+      inputVault: token_vault_1,
+      outputVault: token_vault_0,
+      inputTokenProgram: TOKEN_PROGRAM_ID,
+      outputTokenProgram: TOKEN_PROGRAM_ID,
+      inputTokenMint: mint.publicKey,
+      outputTokenMint: WSOL_ID,
       observationState: observation_state,
       tokenProgram: TOKEN_PROGRAM_ID
     })
@@ -1098,7 +1145,58 @@ it("Subscriber Swap WSOL to SPL Token via Raydium", async () => {
   }
   });
 
+  it("Non-Subscriber Swap SPL Token to WSOL via Raydium", async () => {
+  creator_base_ata = (await getOrCreateAssociatedTokenAccount(
+    program.provider.connection,
+    initializer,
+    WSOL_ID,
+    initializer.publicKey
+  )).address;
+  try {
+  let treasury_ata33=await getOrCreateAssociatedTokenAccount(
+    program.provider.connection,
+    initializer,
+    mint.publicKey,
+    treasuryPda,
+    true
+  );
+
+  await new Promise(f => setTimeout(f, 1000));
+  const swapIx = await program.methods
+    .swap(new BN(100000), new BN(0)
+  )
+    .accountsPartial({
+      profile:profilePDA2,
+      config:configPda,
+      treasury:treasuryPda,
+      treasuryAta:treasury_ata33.address,
+      cpSwapProgram: CPMM_PROGRAM_ID,
+      creator: initializer2.publicKey,
+      authority: authority,
+      ammConfig: AMM_CONFIG_ID,
+      poolState: pool_state,
+      inputTokenAccount: creator_token_ata,
+      outputTokenAccount: creator_base_ata,
+      inputVault: token_vault_1,
+      outputVault: token_vault_0,
+      inputTokenProgram: TOKEN_PROGRAM_ID,
+      outputTokenProgram: TOKEN_PROGRAM_ID,
+      inputTokenMint: mint.publicKey,
+      outputTokenMint: WSOL_ID,
+      observationState: observation_state,
+      tokenProgram: TOKEN_PROGRAM_ID
+    })
+    .signers([initializer2]).rpc();
+    
+  } catch (error) {
+    console.error("\UNIT TEST *Swap* ERROR -", error.message);
+  }
+  });
   
+  
+    
+    
+
   
   it("Non-subscriber sends 500 tokens with fee", async () => {
     const amount = new BN(500); // 500 tokens with decimals

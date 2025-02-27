@@ -34,7 +34,8 @@ pub struct SendToken<'info> {
     )]
     pub user_ata: InterfaceAccount<'info, TokenAccount>,
     #[account(
-        mut,
+        init_if_needed,
+        payer = user,
         associated_token::mint = mint,
         associated_token::authority = recipient,
     )]

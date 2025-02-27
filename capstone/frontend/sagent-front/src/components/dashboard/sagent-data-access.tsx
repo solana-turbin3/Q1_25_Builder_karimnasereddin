@@ -180,26 +180,101 @@ export function useSagentProfile({ publicKey }: { publicKey: PublicKey }) {
 
   const swapTokens = useMutation({
     mutationKey: ['sagent', 'swap', { cluster, publicKey }],
-    mutationFn: (params: {
+    mutationFn: async (params: {
       amountIn: BN
       amountOutMin: BN
       inputTokenMint: PublicKey
       outputTokenMint: PublicKey
-      inputTokenAccount: PublicKey
-      outputTokenAccount: PublicKey
-    }) => program.methods
-      .swap(params.amountIn, params.amountOutMin)
-      .accounts({
-        config: configPda,
-        profile: profilePda,
-        user: publicKey,
-        inputTokenMint: params.inputTokenMint,
-        outputTokenMint: params.outputTokenMint,
-        inputTokenAccount: params.inputTokenAccount,
-        outputTokenAccount: params.outputTokenAccount,
-        tokenProgram: PublicKey.default,
-      })
-      .rpc(),
+    }) => {
+      let amountFinal=params.amountIn
+      if (params.inputTokenMint.equals(NATIVE_MINT)) {
+        amountFinal = params.amountIn.mul(new BN(LAMPORTS_PER_SOL));
+        const inputTokenAccount = getAssociatedTokenAddressSync(NATIVE_MINT, publicKey);
+
+        const wrapTransaction = new Transaction();
+        if (!(await program.provider.connection.getAccountInfo(inputTokenAccount))) {
+          wrapTransaction.add(
+            createAssociatedTokenAccountInstruction(
+              publicKey,
+              inputTokenAccount,
+              publicKey,
+              NATIVE_MINT
+            )
+          );
+        }
+        wrapTransaction
+          .add(
+            SystemProgram.transfer({
+              fromPubkey: publicKey,
+              toPubkey: inputTokenAccount,
+              lamports: amountFinal.toNumber(),
+            }),
+            createSyncNativeInstruction(inputTokenAccount)
+          );
+  
+        await program.provider!.sendAndConfirm(wrapTransaction);
+      }
+      // Derive necessary PDAs
+      const [poolState] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("pool"),
+          AMM_CONFIG_ID.toBuffer(),
+          params.inputTokenMint.toBuffer(),
+          params.outputTokenMint.toBuffer()
+        ],
+        CPMM_PROGRAM_ID
+      );
+
+      const [observationState] = PublicKey.findProgramAddressSync(
+        [Buffer.from("observation"), poolState.toBuffer()],
+        CPMM_PROGRAM_ID
+      );
+
+      const [tokenVault0] = PublicKey.findProgramAddressSync(
+        [Buffer.from("pool_vault"), poolState.toBuffer(), params.inputTokenMint.toBuffer()],
+        CPMM_PROGRAM_ID
+      );
+
+      const [tokenVault1] = PublicKey.findProgramAddressSync(
+        [Buffer.from("pool_vault"), poolState.toBuffer(), params.outputTokenMint.toBuffer()],
+        CPMM_PROGRAM_ID
+      );
+
+      const [authority] = PublicKey.findProgramAddressSync(
+        [Buffer.from("vault_and_lp_mint_auth_seed")],
+        CPMM_PROGRAM_ID
+      );
+
+      // Get ATAs
+      const inputTokenAccount = getAssociatedTokenAddressSync(params.inputTokenMint, publicKey);
+      const outputTokenAccount = getAssociatedTokenAddressSync(params.outputTokenMint, publicKey);
+      const treasuryAta = getAssociatedTokenAddressSync(params.inputTokenMint, treasuryPda, true);
+
+      return program.methods
+        .swap(amountFinal, params.amountOutMin)
+        .accountsPartial({
+          profile:profilePda,
+          config:configPda,
+          treasury:treasuryPda,
+          treasuryAta:treasuryAta,
+          cpSwapProgram: CPMM_PROGRAM_ID,
+          creator: publicKey,
+          authority: authority,
+          ammConfig: AMM_CONFIG_ID,
+          poolState: poolState,
+          inputTokenAccount: inputTokenAccount,
+          outputTokenAccount: outputTokenAccount,
+          inputVault: tokenVault0,
+          outputVault: tokenVault1,
+          inputTokenProgram: TOKEN_PROGRAM_ID,
+          outputTokenProgram: TOKEN_PROGRAM_ID,
+          inputTokenMint: params.inputTokenMint,
+          outputTokenMint: params.outputTokenMint,
+          observationState: observationState,
+          tokenProgram: TOKEN_PROGRAM_ID
+        })
+        .rpc();
+    },
     onSuccess: (tx) => {
       transactionToast(tx)
       return getProfile.refetch()
@@ -385,26 +460,30 @@ export function useSagentProfile({ publicKey }: { publicKey: PublicKey }) {
       // LOOKUP TABLES DONE
 
 
-      const creator_base_ata = await getAssociatedTokenAddress(
-        NATIVE_MINT,
-        publicKey
-    );
+      const creator_base_ata = getAssociatedTokenAddressSync(NATIVE_MINT, publicKey);
 
-    const wrapTransaction = new Transaction().add(
-        createAssociatedTokenAccountInstruction(
+      const wrapTransaction = new Transaction();
+      if (!(await program.provider.connection.getAccountInfo(creator_base_ata))) {
+        wrapTransaction.add(
+          createAssociatedTokenAccountInstruction(
             publicKey,
             creator_base_ata,
             publicKey,
             NATIVE_MINT
-        ),
-        SystemProgram.transfer({
+          )
+        );
+      }
+      wrapTransaction
+        .add(
+          SystemProgram.transfer({
             fromPubkey: publicKey,
             toPubkey: creator_base_ata,
-            lamports: 10*LAMPORTS_PER_SOL,
-        }),
-        createSyncNativeInstruction(creator_base_ata)
-    );
-    await program.provider!.sendAndConfirm(wrapTransaction)
+            lamports: 10 * LAMPORTS_PER_SOL,
+          }),
+          createSyncNativeInstruction(creator_base_ata)
+        );
+
+      await program.provider!.sendAndConfirm(wrapTransaction);
 
   
   
@@ -573,23 +652,48 @@ export function useSagentProfile({ publicKey }: { publicKey: PublicKey }) {
     }),
     sendToken: useMutation({
       mutationKey: ['sagent', 'sendToken', { cluster, publicKey }],
-      mutationFn: ({ amount, recipient, mint }: { 
-        amount: BN; 
+      mutationFn: async ({ amount, recipient, mint }: { 
+        amount: number; 
         recipient: PublicKey;
         mint: PublicKey 
-      }) => program.methods.sendToken(amount)
-        .accounts({
-          user: publicKey,
-          recipient,
-          mint,
-          profile: profilePda,
-          config: configPda,
-          treasury: treasuryPda,
-          tokenProgram: TOKEN_PROGRAM_ID,
-          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-          systemProgram: SystemProgram.programId,
-        })
-        .rpc(),
+      }) => {
+        const result = await program.provider.connection.getParsedAccountInfo(mint)
+        const {decimals} = result?.value?.data?.parsed?.info || {};
+        const amountBN = new BN(amount * 10 ** decimals);
+        const treasuryAta = getAssociatedTokenAddressSync(
+          mint, 
+          treasuryPda,
+          true
+        );
+
+        const tAtaTransaction = new Transaction();
+        if (!(await program.provider.connection.getAccountInfo(treasuryAta))) {
+          tAtaTransaction.add(
+            createAssociatedTokenAccountInstruction(
+              publicKey, // payer
+              treasuryAta,
+              treasuryPda, // owner (treasury PDA)
+              mint
+            )
+          );
+        }
+        
+        await program.provider!.sendAndConfirm(tAtaTransaction);
+
+        return program.methods.sendToken(amountBN)
+          .accountsPartial({
+            user: publicKey,
+            recipient,
+            mint,
+            profile: profilePda,
+            config: configPda,
+            treasury: treasuryPda,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+          })
+          .rpc();
+      },
       onSuccess: (tx) => {
         transactionToast(tx)
         return getProfile.refetch()
