@@ -187,6 +187,12 @@ export function useSagentProfile({ publicKey }: { publicKey: PublicKey }) {
       outputTokenMint: PublicKey
     }) => {
       let amountFinal=params.amountIn
+      let poolStateMint: PublicKey;
+      if(params.inputTokenMint.equals(NATIVE_MINT)){
+        poolStateMint=params.outputTokenMint
+      }else{
+        poolStateMint=params.inputTokenMint
+      }
       if (params.inputTokenMint.equals(NATIVE_MINT)) {
         amountFinal = params.amountIn.mul(new BN(LAMPORTS_PER_SOL));
         const inputTokenAccount = getAssociatedTokenAddressSync(NATIVE_MINT, publicKey);
@@ -219,8 +225,8 @@ export function useSagentProfile({ publicKey }: { publicKey: PublicKey }) {
         [
           Buffer.from("pool"),
           AMM_CONFIG_ID.toBuffer(),
-          params.inputTokenMint.toBuffer(),
-          params.outputTokenMint.toBuffer()
+          NATIVE_MINT.toBuffer(),
+          poolStateMint.toBuffer(),
         ],
         CPMM_PROGRAM_ID
       );

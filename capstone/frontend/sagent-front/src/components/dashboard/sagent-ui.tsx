@@ -1,13 +1,16 @@
 'use client'
 
 import { PublicKey } from '@solana/web3.js'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { ellipsify } from '../ui/ui-layout'
 import { ExplorerLink } from '../cluster/cluster-ui'
 import { useSagentProgram, useSagentProfile } from './sagent-data-access'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { BN } from '@coral-xyz/anchor'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
+import { useChat } from 'ai/react'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 
 export function SagentCreate() {
   const { initializeProtocol } = useSagentProgram()
@@ -100,6 +103,10 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
   const [swapAmountOutMin, setSwapAmountOutMin] = useState('')
   const [inputTokenMint, setInputTokenMint] = useState('')
   const [outputTokenMint, setOutputTokenMint] = useState('')
+  const { messages, input, handleInputChange, handleSubmit } = useChat({
+    api: '/api/chat', // You'll need to create this API route
+  });
+  const chatParent = useRef(null);
 
   return (
     <div className="card bg-base-200">
@@ -392,6 +399,44 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
                   {createNftMint.isPending ? 'Creating Collection...' : 'Create NFT Collection'}
             </button>
               </div>
+            </div>
+
+            <div className="flex flex-col w-full max-h-[60vh]">
+              <div className="p-4 border-b w-full">
+                <h1 className="text-2xl font-bold">Sagent AI Assistant</h1>
+              </div>
+
+              <ul ref={chatParent} className="h-[400px] p-4 overflow-y-auto flex flex-col gap-4">
+                {messages.map((m, index) => (
+                  <div key={index}>
+                    {m.role === 'user' ? (
+                      <li className="flex flex-row">
+                        <div className="rounded-xl p-4 bg-base-100 shadow-md">
+                          <p>{m.content}</p>
+                        </div>
+                      </li>
+                    ) : (
+                      <li className="flex flex-row-reverse">
+                        <div className="rounded-xl p-4 bg-base-100 shadow-md w-3/4">
+                          <p>{m.content}</p>
+                        </div>
+                      </li>
+                    )}
+                  </div>
+                ))}
+              </ul>
+
+              <form onSubmit={handleSubmit} className="p-4 border-t w-full">
+                <div className="flex gap-2 max-w-3xl mx-auto">
+                  <Input
+                    className="flex-1"
+                    placeholder="Ask or tell Sagent what to do..."
+                    value={input}
+                    onChange={handleInputChange}
+                  />
+                  <Button type="submit">Send</Button>
+                </div>
+              </form>
             </div>
           </div>
         ) : (
