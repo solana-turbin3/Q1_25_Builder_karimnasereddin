@@ -15,7 +15,7 @@ export function SagentCreate() {
   const { program, configPda } = useSagentProgram()
   return (
     <button
-      className="btn btn-primary"
+      className="btn "
       onClick={() =>
         initializeProtocol.mutateAsync({
           admin: publicKey!,
@@ -131,7 +131,7 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
 
             <div className="flex gap-2 flex-wrap">
               <button
-                className="btn btn-primary"
+                className="btn "
                 onClick={() => subscribe.mutateAsync(publicKey)}
                 disabled={subscribe.isPending}
               >
@@ -139,7 +139,7 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
               </button>
 
               <button
-                className="btn btn-secondary"
+                className="btn "
                 onClick={() => sendSol.mutateAsync({
                   amount: new BN(parseFloat(sendAmount) * LAMPORTS_PER_SOL),
                   recipient: new PublicKey(recipient)
@@ -152,14 +152,14 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
               <ExplorerLink 
                 path={`account/${profilePda}`} 
                 label="View Profile" 
-                className="btn btn-outline"
+                className="btn "
               />
             </div>
 
             <div className="flex flex-col gap-2">
               {!getProfile.data.subscription && (
                 <button
-                  className="btn btn-accent"
+                  className="btn"
                   onClick={() => subscribe.mutateAsync(publicKey)}
                   disabled={subscribe.isPending}
                 >
@@ -185,7 +185,7 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
                     onChange={(e) => setRecipient(e.target.value)}
                   />
                   <button
-                    className="btn btn-secondary"
+                    className="btn"
                     onClick={() => sendSol.mutateAsync({
                       amount: new BN(parseFloat(sendAmount) * LAMPORTS_PER_SOL),
                       recipient: new PublicKey(recipient)
@@ -224,7 +224,7 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
                   onChange={(e) => setTokenRecipient(e.target.value)}
                 />
                 <button
-                  className="btn btn-secondary"
+                  className="btn "
                   onClick={() => sendToken.mutateAsync({
                     amount: parseFloat(tokenAmount),
                     recipient: new PublicKey(tokenRecipient),
@@ -270,7 +270,7 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
                   onChange={(e) => setSwapAmountOutMin(e.target.value)}
                 />
                 <button
-                  className="btn btn-secondary"
+                  className="btn"
                   onClick={() => swapTokens.mutateAsync({
                     amountIn: new BN(swapAmountIn),
                     amountOutMin: new BN(swapAmountOutMin),
@@ -296,7 +296,7 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
                   onChange={(e) => setNftRecipient(e.target.value)}
                 />
             <button
-                  className="btn btn-secondary"
+                  className="btn"
                   onClick={() => sendNft.mutateAsync({
                     recipient: new PublicKey(nftRecipient),
                     mint: new PublicKey(nftRecipient)
@@ -334,7 +334,7 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
                   onChange={(e) => setTokenUri(e.target.value)}
                 />
             <button
-                  className="btn btn-primary"
+                  className="btn"
                   onClick={() => createTokenMint.mutateAsync({
                     name: tokenName,
                     symbol: tokenSymbol,
@@ -374,7 +374,7 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
                   onChange={(e) => setNftUri(e.target.value)}
                 />
             <button
-                  className="btn btn-accent"
+                  className="btn"
                   onClick={() => {
                     createNftMint.mutateAsync({
                       name: nftName,
@@ -403,7 +403,7 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
               id="profileName"
             />
             <button
-              className="btn btn-primary"
+              className="btn"
               onClick={() => {
                 const name = (document.getElementById('profileName') as HTMLInputElement)?.value
                 if (name) createProfile.mutateAsync(name)

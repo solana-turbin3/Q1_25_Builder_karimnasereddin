@@ -17,7 +17,19 @@ export default function DashboardFeature() {
 
   return (
     <div>
-      <AppHero title="Say hello to your on-chain assistant." subtitle="SAGENT - OC" />
+      <br></br>
+      <br></br>
+      <br></br>
+      <br></br>
+
+        <h4 className="md:w-full text-2x1 md:text-4xl text-center text-slate-300 my-2">
+          <p>Welcome to Sagent</p>
+          <p className='text-slate-500 text-2x1 leading-relaxed'>Solana under your command.</p>
+        </h4>
+        <br></br>
+        <br></br>
+        <br></br>
+        
       <div className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="space-y-4">
           {!getConfig.data && publicKey && (
