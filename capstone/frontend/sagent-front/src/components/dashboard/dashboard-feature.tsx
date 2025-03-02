@@ -21,7 +21,7 @@ export default function DashboardFeature() {
       <br></br>
       <br></br>
       <br></br>
-
+        <img src="https://i.ibb.co/jv7X3q8c/sagent.png" alt="Sagent Logo" className="w-32 h-32 mx-auto" />
         <h4 className="md:w-full text-2x1 md:text-4xl text-center text-slate-300 my-2">
           <p>Welcome to Sagent</p>
           <p className='text-slate-500 text-2x1 leading-relaxed'>Solana under your command.</p>

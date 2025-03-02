@@ -5,7 +5,7 @@ import {UiLayout} from '@/components/ui/ui-layout'
 import {ReactQueryProvider} from './react-query-provider'
 
 export const metadata = {
-  title: 'SAGENT',
+  title: 'Sagent - Solana Agent',
   description: 'Sagent - OC',
 }
 

@@ -10,34 +10,20 @@ import { useCluster } from '../cluster/cluster-data-access'
 import { useAnchorProvider } from '../solana/solana-provider'
 import { useTransactionToast } from '../ui/ui-layout'
 import { BN } from '@coral-xyz/anchor'
-import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, getAssociatedTokenAddressSync, getOrCreateAssociatedTokenAccount, createSyncNativeInstruction, Account, createAssociatedTokenAccount, createAssociatedTokenAccountInstruction, getAssociatedTokenAddress } from "@solana/spl-token";
+import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, getAssociatedTokenAddressSync, getOrCreateAssociatedTokenAccount, createSyncNativeInstruction, Account, createAssociatedTokenAccount, createAssociatedTokenAccountInstruction, getAssociatedTokenAddress, createTransferInstruction } from "@solana/spl-token";
 import * as web3 from '@solana/web3.js'
-import {
-  getAccount,
-  createTransferInstruction,
-  createCloseAccountInstruction,
-} from "@solana/spl-token";
-import {
-  Connection,
-  sendAndConfirmTransaction,
-} from "@solana/web3.js";
 const TOKEN_METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s')
 
 // Add NATIVE_MINT constant
 const NATIVE_MINT = new PublicKey('So11111111111111111111111111111111111111112')
 
-// Add these constants at the top
-const CP_SWAP_PROGRAM_ID = new PublicKey('CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C')
-const TOKEN_PROGRAM = TOKEN_PROGRAM_ID
-const ASSOCIATED_TOKEN_PROGRAM = ASSOCIATED_TOKEN_PROGRAM_ID
 
 // Add all program constants from test file
-const CPMM_PROGRAM_ID = new PublicKey('CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C')
-const LOCK_CPMM_PROGRAM_ID = new PublicKey('LockrWmn6K5twhz3y9w1dQERbmgSaRkfnTeTKbpofwE')
-const LOCK_CPMM_AUTHORITY_ID = new PublicKey('3f7GcQFG397GAaEnv51zR6tsTVihYRydnydDD1cXekxH')
-const AMM_CONFIG_ID = new PublicKey('D4FPEruKEHrG5TenZ2mpDGEfu1iUvTiqBxvpU8HLBvC2')
-const MEMO_PROGRAM = new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr')
-const CREATE_POOL_FEE = new PublicKey('DNXgeM9EiiaAbaWvwjHj9fQQLAX5ZsfHyvmYUNRAdNC8')
+const CPMM_PROGRAM_ID = new PublicKey('CPMDWBwJDtYax9qW7AyRuVC19Cc4L4Vcy4n2BHAbHkCW')
+const LOCK_CPMM_AUTHORITY_ID= new PublicKey('7AFUeLVRjBfzqK3tTGw8hN48KLQWSk6DTE8xprWdPqix')
+const LOCK_CPMM_PROGRAM_ID = new PublicKey('DLockwT7X7sxtLmGH9g5kmfcjaBtncdbUmi738m5bvQC')
+const AMM_CONFIG_ID = new PublicKey('9zSzfkYy6awexsHvmggeH36pfVUdDGyCcwmjT3AQPBj6')
+const CREATE_POOL_FEE = new PublicKey('G11FKBRaAkHAKuLCgLM6K6NUc9rTjPAznRCjZifrTQe2')
 
 export function useSagentProgram() {
   const { connection } = useConnection()
@@ -114,7 +100,9 @@ export function useSagentProgram() {
         .rpc(),
       onSuccess: (tx) => {
         transactionToast(tx)
-        return getConfig.refetch()
+        return getConfig.refetch().then(() => {
+          return tx
+        })
       },
     }),
     sendSol: useMutation({
@@ -220,6 +208,11 @@ export function useSagentProfile({ publicKey }: { publicKey: PublicKey }) {
   
         await program.provider!.sendAndConfirm(wrapTransaction);
       }
+      else{
+        const result = await program.provider.connection.getParsedAccountInfo(params.inputTokenMint)
+        const {decimals} = result?.value?.data?.parsed?.info || {};
+        amountFinal = params.amountIn.mul(new BN(10 ** decimals));
+      }
       // Derive necessary PDAs
       const [poolState] = PublicKey.findProgramAddressSync(
         [
@@ -255,6 +248,20 @@ export function useSagentProfile({ publicKey }: { publicKey: PublicKey }) {
       const inputTokenAccount = getAssociatedTokenAddressSync(params.inputTokenMint, publicKey);
       const outputTokenAccount = getAssociatedTokenAddressSync(params.outputTokenMint, publicKey);
       const treasuryAta = getAssociatedTokenAddressSync(params.inputTokenMint, treasuryPda, true);
+
+        const tAtaTransaction = new Transaction();
+        if (!(await program.provider.connection.getAccountInfo(treasuryAta))) {
+          tAtaTransaction.add(
+            createAssociatedTokenAccountInstruction(
+              publicKey, // payer
+              treasuryAta,
+              treasuryPda, // owner (treasury PDA)
+              params.inputTokenMint
+            )
+          );
+        }
+        
+        await program.provider!.sendAndConfirm(tAtaTransaction);
 
       return program.methods
         .swap(amountFinal, params.amountOutMin)
@@ -318,7 +325,9 @@ export function useSagentProfile({ publicKey }: { publicKey: PublicKey }) {
       .rpc(),
     onSuccess: (tx) => {
       transactionToast(tx)
-      return getProfile.refetch()
+      return getProfile.refetch().then(() => {
+        return tx
+      })
     },
   })
 
@@ -330,9 +339,15 @@ export function useSagentProfile({ publicKey }: { publicKey: PublicKey }) {
       uri: string
       decimals: number
     }) => {
+
       // Generate fresh keypairs every time
       const mintKeypair = Keypair.generate()
       const feeNftMintKeypair = Keypair.generate()
+
+      // const [LOCK_CPMM_AUTHORITY_ID] = PublicKey.findProgramAddressSync(
+      //   [Buffer.from("lock_cp_authority_seed")],
+      //   LOCK_CPMM_PROGRAM_ID
+      // )
 
       // Derive ALL PDAs fresh each time
       const [poolState] = PublicKey.findProgramAddressSync(
@@ -484,7 +499,7 @@ export function useSagentProfile({ publicKey }: { publicKey: PublicKey }) {
           SystemProgram.transfer({
             fromPubkey: publicKey,
             toPubkey: creator_base_ata,
-            lamports: 10 * LAMPORTS_PER_SOL,
+            lamports: 2 * LAMPORTS_PER_SOL,
           }),
           createSyncNativeInstruction(creator_base_ata)
         );
@@ -494,7 +509,7 @@ export function useSagentProfile({ publicKey }: { publicKey: PublicKey }) {
   
   
 
-    const funding_amount=new BN(10*LAMPORTS_PER_SOL)
+    const funding_amount=new BN(2*LAMPORTS_PER_SOL)
     const createCpmmPool = await program.methods
     .createCpmmPool(
       funding_amount
@@ -581,11 +596,12 @@ export function useSagentProfile({ publicKey }: { publicKey: PublicKey }) {
   transaction2.sign([mintKeypair, feeNftMintKeypair]);
   
   // Send with fresh confirmation
-  return await program.provider!.sendAndConfirm(transaction2, [mintKeypair, feeNftMintKeypair])
+  const tx = await program.provider!.sendAndConfirm(transaction2, [mintKeypair, feeNftMintKeypair]);
+  return { tx, mint: mintKeypair.publicKey };
     },
-    onSuccess: (tx) => {
-      transactionToast(tx)
-      return getProfile.refetch()
+    onSuccess: ({ tx, mint }) => {
+      toast.success(`Token mint: ${mint.toString()}`);
+      return getProfile.refetch();
     },
     onError: (error) => { // Add error handling
       console.error('Create Token Error:', error)

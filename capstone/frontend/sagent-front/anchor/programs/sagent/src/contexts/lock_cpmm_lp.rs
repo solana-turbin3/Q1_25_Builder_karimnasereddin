@@ -13,8 +13,8 @@ use raydium_cpmm_cpi::{
 
 use raydium_locking_cpi::{cpi, program::RaydiumLiquidityLocking, states::LOCKED_LIQUIDITY_SEED};
 use crate::errors::CustomError;
-use crate::constants::LOCK_CPMM_AUTHORITY;
 use crate::states::Config;
+use crate::constants::LOCK_CPMM_AUTHORITY;
 
 /// This context allows us lock our lp liquidity
 #[derive(Accounts)]

@@ -1,7 +1,7 @@
 'use client'
 
 import { PublicKey } from '@solana/web3.js'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ellipsify } from '../ui/ui-layout'
 import { ExplorerLink } from '../cluster/cluster-ui'
 import { useSagentProgram, useSagentProfile } from './sagent-data-access'
@@ -49,19 +49,21 @@ export function SagentList() {
           Protocol not initialized yet
         </div>
       ) : (
-        <div className="grid gap-4">
-          <div className="card bg-base-200">
-            <div className="card-body">
-              <h2 className="card-title">Protocol Configuration</h2>
+        <div className="grid gap-4 p-4">
+          <div className="card bg-base-200 text-center">
+            <div className="card-body text-center">
+              <h4 className="text-center text-2xl text-slate-300">Protocol Configuration</h4>
+              <br></br>
               <div className="space-y-2">
                 <p>Admin: {ellipsify(getConfig.data.admin.toString())}</p>
                 <p>Fee: {getConfig.data.feeBasisPoints / 100}%</p>
                 <p>Subscription Price: {getConfig.data.subscriptionPrice.toNumber() / 1e9} SOL</p>
                 <p>Free Transactions: {getConfig.data.subscriptionAllowance.toString()}</p>
+                <ExplorerLink path={`account/${configPda}`} label="Config" className="btn" />
+                <ExplorerLink path={`account/${treasuryPda}`} label="Treasury" className="btn" />
               </div>
               <div className="mt-4">
-                <ExplorerLink path={`account/${configPda}`} label="View Config" />
-                <ExplorerLink path={`account/${treasuryPda}`} label="View Treasury" className="ml-2" />
+
               </div>
             </div>
           </div>
@@ -103,15 +105,196 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
   const [swapAmountOutMin, setSwapAmountOutMin] = useState('')
   const [inputTokenMint, setInputTokenMint] = useState('')
   const [outputTokenMint, setOutputTokenMint] = useState('')
-  const { messages, input, handleInputChange, handleSubmit } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, append, isLoading } = useChat({
     api: '/api/chat', // You'll need to create this API route
   });
   const chatParent = useRef(null);
+  const processedIds = useRef(new Set<string>());
+  useEffect(() => {
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage || processedIds.current.has(lastMessage.id) || isLoading) return;
+    
+    switch(true) {
+
+      // SUBSCRIBE CASE
+        case (
+            lastMessage.role === 'assistant' && 
+            lastMessage.content.startsWith('SUBSCRIBE') &&
+            !subscribe.isPending
+        ):
+            processedIds.current.add(lastMessage.id);
+            console.log('Valid subscription trigger');
+            subscribe.mutateAsync().then((tx) => {
+                console.log('Transaction ID:', tx);
+                append({
+                    id: Date.now().toString(),
+                    content: `Transaction Confirmed!`,
+                    role: 'system'
+                });
+            });
+            break;
+
+      // SEND SOL CASE
+        case(
+          lastMessage.role === 'assistant' && 
+          lastMessage.content.startsWith('SEND SOL') &&
+          !sendSol.isPending
+        ):
+          processedIds.current.add(lastMessage.id);
+          const sendSolParams = lastMessage.content.split(':').map(p => p.trim());
+          if (sendSolParams.length < 3) {
+              console.error('Invalid SEND SOL format');
+              break;
+          }
+          const amount = sendSolParams[1];
+          console.log('Amount:', amount);
+          const recipient = sendSolParams[2];
+          console.log('Recipient:', recipient);
+          sendSol.mutateAsync({
+            amount: new BN(parseFloat(amount)*LAMPORTS_PER_SOL),
+            recipient: new PublicKey(recipient)
+          }).then((tx) => {
+              console.log('Transaction ID:', tx);
+              append({
+                  id: Date.now().toString(),
+                  content: `Transaction Confirmed!`,
+                  role: 'system' 
+              });
+          });
+          break;
+
+      // SEND TOKEN CASE
+          case(
+            lastMessage.role === 'assistant' && 
+            lastMessage.content.startsWith('SEND TOKEN') &&
+            !sendToken.isPending
+          ):
+            processedIds.current.add(lastMessage.id);
+            const sendTokenParams = lastMessage.content.split(':').map(p => p.trim());
+            if (sendTokenParams.length < 3) {
+                console.error('Invalid SEND TOKEN format');
+                break;
+            }
+            const tokenSendAmount =  sendTokenParams[1];
+            console.log('Amount:', tokenSendAmount);
+            const tokenRecipient = sendTokenParams[2];
+            console.log('Recipient:', tokenRecipient);
+            const tokenMint = sendTokenParams[3];
+            sendToken.mutateAsync({
+              amount: parseFloat(tokenSendAmount),
+              recipient: new PublicKey(tokenRecipient),
+              mint: new PublicKey(tokenMint)
+            }).then((tx) => {
+                console.log('Transaction ID:', tx);
+                append({
+                    id: Date.now().toString(),
+                    content: `Transaction Confirmed!`,
+                    role: 'system' 
+                });
+            });
+            break;
+
+      // CREATE TOKEN MINT CASE
+        case(
+          lastMessage.role === 'assistant' && 
+          lastMessage.content.startsWith('CREATE TOKEN MINT') &&
+          !createTokenMint.isPending
+        ):
+            processedIds.current.add(lastMessage.id);
+            const createTokenMintParams = lastMessage.content.split(':').map(p => p.trim());
+            if (createTokenMintParams.length < 4) {
+                console.error('Invalid CREATE TOKEN MINT format');
+                break;
+            }
+            const tokenName = createTokenMintParams[1];
+            const tokenSymbol = createTokenMintParams[2];
+            const tokenUri = createTokenMintParams[3];
+            createTokenMint.mutateAsync({
+              name: tokenName,
+              symbol: tokenSymbol,
+              uri: tokenUri,
+              decimals: 6
+            }).then((tx) => {
+              console.log('Transaction ID:', tx);
+              append({
+                id: Date.now().toString(),
+                content: `Transaction Confirmed!`,
+                role: 'system' 
+              });
+            });
+            break;
+
+      // CREATE NFT MINT CASE
+        case(
+          lastMessage.role === 'assistant' && 
+          lastMessage.content.startsWith('CREATE NFT MINT') &&
+          !createNftMint.isPending
+        ):
+            processedIds.current.add(lastMessage.id);
+            const createNftMintParams = lastMessage.content.split(':').map(p => p.trim());
+            if (createNftMintParams.length < 4) {
+                console.error('Invalid CREATE NFT MINT format');
+                break;
+            }
+            const nftName = createNftMintParams[1];
+            const nftSymbol = createNftMintParams[2];
+            const nftUri = createNftMintParams[3];
+            createNftMint.mutateAsync({
+              name: nftName,
+              symbol: nftSymbol,
+              uri: nftUri,
+              decimals: 0
+            }).then((tx) => {
+              console.log('Transaction ID:', tx);
+              append({
+                id: Date.now().toString(),
+                content: `Transaction Confirmed!`,
+                role: 'system' 
+              });
+            });
+            break;
+
+      // SWAP TOKENS CASE
+        case(
+          lastMessage.role === 'assistant' && 
+          lastMessage.content.startsWith('SWAP TOKENS') &&
+          !swapTokens.isPending
+        ):
+            processedIds.current.add(lastMessage.id);
+            const swapTokensParams = lastMessage.content.split(':').map(p => p.trim());
+            if (swapTokensParams.length < 4) {
+                console.error('Invalid SWAP TOKENS format');
+                break;
+            }
+            const swapAmountIn = swapTokensParams[1];
+            const inputTokenMint = swapTokensParams[2];
+            const outputTokenMint = swapTokensParams[3];
+            swapTokens.mutateAsync({
+              amountIn: new BN(parseFloat(swapAmountIn)),
+              amountOutMin: new BN( (0)),
+              inputTokenMint: new PublicKey(inputTokenMint),
+              outputTokenMint: new PublicKey(outputTokenMint)
+            }).then((tx) => {
+              console.log('Transaction ID:', tx);
+              append({
+                id: Date.now().toString(),
+                content: `Transaction Confirmed!`,
+                role: 'system' 
+              });
+            });
+            break;
+            default:
+            // No action needed for other cases
+    }
+}, [messages, subscribe.isPending, sendSol.isPending, sendToken.isPending, append, isLoading, createTokenMint.isPending, createNftMint.isPending, swapTokens.isPending, sendNft.isPending]);
+
+
 
   return (
     <div className="card bg-base-200">
+        
       <div className="card-body">
-        <h2 className="card-title">Your Profile</h2>
+        <br></br>
         
         {getProfile.isLoading ? (
           <span className="loading loading-spinner loading-md"></span>
@@ -136,7 +319,7 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
               </div>
             </div>
 
-            <div className="flex gap-2 flex-wrap">
+            {/* <div className="flex gap-2 flex-wrap">
               <button
                 className="btn "
                 onClick={() => subscribe.mutateAsync(publicKey)}
@@ -161,20 +344,21 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
                 label="View Profile" 
                 className="btn "
               />
-            </div>
+            </div> */}
 
             <div className="flex flex-col gap-2">
+              <br></br>
               {!getProfile.data.subscription && (
                 <button
                   className="btn"
-                  onClick={() => subscribe.mutateAsync(publicKey)}
+                  onClick={() => subscribe.mutateAsync()}
                   disabled={subscribe.isPending}
                 >
                   Subscribe {subscribe.isPending && '...'}
                 </button>
               )}
-              
-              <div className="form-control">
+              {/* Send SOL Section */}
+              {/* <div className="form-control">
                 <label className="label">Send SOL</label>
                 <div className="flex gap-2">
                   <input
@@ -202,11 +386,11 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
                     Send SOL {sendSol.isPending && '...'}
                   </button>
                 </div>
-              </div>
+              </div> */}
             </div>
 
             {/* Token Transfer Section */}
-            <div className="form-control">
+            {/* <div className="form-control">
               <label className="label">Send Tokens</label>
               <div className="flex gap-2 flex-wrap">
                 <input
@@ -242,10 +426,10 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
                   Send Tokens {sendToken.isPending && '...'}
                 </button>
               </div>
-            </div>
+            </div> */}
 
             {/* Swap Tokens Section */}
-            <div className="form-control">
+            {/* <div className="form-control">
               <label className="label">Swap Tokens</label>
               <div className="flex gap-2 flex-wrap">
                 <input
@@ -289,10 +473,10 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
                   Execute Swap {swapTokens.isPending && '...'}
                 </button>
               </div>
-            </div>
+            </div> */}
 
             {/* NFT Transfer Section */}
-            <div className="form-control">
+            {/* <div className="form-control">
               <label className="label">Send NFT</label>
               <div className="flex gap-2 flex-wrap">
                 <input
@@ -313,10 +497,10 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
                   Send NFT {sendNft.isPending && '...'}
             </button>
               </div>
-            </div>
+            </div> */}
 
             {/* Token Creation Section */}
-            <div className="form-control">
+            {/* <div className="form-control">
               <label className="label">Create Token</label>
               <div className="flex flex-col gap-2">
                 <input
@@ -353,10 +537,10 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
                   Create Token {createTokenMint.isPending && '...'}
             </button>
               </div>
-            </div>
+            </div> */}
 
             {/* NFT Creation Section */}
-            <div className="form-control">
+            {/* <div className="form-control">
               <label className="label">Create NFT Collection</label>
               <div className="flex flex-col gap-2">
                 <input
@@ -399,14 +583,37 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
                   {createNftMint.isPending ? 'Creating Collection...' : 'Create NFT Collection'}
             </button>
               </div>
+            </div> */}
+            <br></br>
+  
+            
+            {/* Chatbot Section */}
+            <div className="p-1 border-b w-full" style={{
+              background: `radial-gradient(
+                circle farthest-side at 50% 100%,
+                rgba(1, 9, 18, 0),
+                rgba(1, 6, 14, 0.6) 36%,
+                rgba(1, 14, 29, 0.6) 55%,
+                rgba(61, 61, 65, 0.123)
+              )`
+            }}>
             </div>
-
-            <div className="flex flex-col w-full max-h-[60vh]">
-              <div className="p-4 border-b w-full">
-                <h1 className="text-2xl font-bold">Sagent AI Assistant</h1>
+            <h4 className="md:w-full text-2x1 md:text-4xl text-center text-slate-300 my-2" >
+          <p>Chat</p>
+        </h4>
+            <div className="flex flex-col w-full max-h-[60vh]" style={{
+              background: `radial-gradient(
+                circle farthest-side at 50% 100%,
+                rgba(1, 9, 18, 0),
+                rgba(1, 6, 14, 0.6) 36%,
+                rgba(1, 14, 29, 0.6) 55%,
+                rgba(61, 61, 65, 0.123)
+              )`
+            }}>
+              <div className="p-1 border-b w-full">
               </div>
 
-              <ul ref={chatParent} className="h-[400px] p-4 overflow-y-auto flex flex-col gap-4">
+              <ul ref={chatParent} className="h-[400px] p-4 overflow-y-auto flex flex-col gap-1">
                 {messages.map((m, index) => (
                   <div key={index}>
                     {m.role === 'user' ? (
@@ -463,3 +670,5 @@ function UserProfileCard({ publicKey }: { publicKey: PublicKey }) {
     </div>
   )
 }
+
+

@@ -22,7 +22,7 @@ export function getSagentProgramId(cluster: Cluster) {
     case 'devnet':
     case 'testnet':
       // This is the program ID for the Test program on devnet and testnet.
-      return new PublicKey('D3EhymFwTs4ikkQWD3QcjVor48MidZTg497WdEBVKiYB')
+      return new PublicKey('SAGEfgw3ncJAvhqBadJ8B377AvPEJ5wGw6jtgGKFueG')
     case 'mainnet-beta':
     default:
       return SAGENT_PROGRAM_ID
