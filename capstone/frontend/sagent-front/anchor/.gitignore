@@ -1,7 +1,6 @@
 .anchor
 .DS_Store
 target/deploy
-target/types
 target/release
 target/.rustc_info.json
 target/debug
