@@ -1,6 +1,6 @@
 .anchor
 .DS_Store
-target
+target/*
 !/target/idl/sagent.json
 **/*.rs.bk
 node_modules
