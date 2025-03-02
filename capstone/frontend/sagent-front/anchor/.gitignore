@@ -1,9 +1,8 @@
 .anchor
 .DS_Store
-target/*
-!/target/idl/sagent.json
+target
+!anchor/target/idl/sagent.json
 **/*.rs.bk
 node_modules
 test-ledger
 .yarn
-KG5pWUAnfqpFaeZqUAvDopkxd9kqRyMb6DRnck9S181.json
