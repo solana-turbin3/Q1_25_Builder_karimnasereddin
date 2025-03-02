@@ -1,7 +1,11 @@
 .anchor
 .DS_Store
-target
-!anchor/target/idl/sagent.json
+target/deploy
+target/types
+target/release
+target/.rustc_info.json
+target/debug
+target/sbf-solana-solana
 **/*.rs.bk
 node_modules
 test-ledger
