@@ -107,10 +107,12 @@ When running `anchor test`, you should see successful test execution similar to 
 
 ### Test Execution
 ![Test Execution Screenshot](./test-execution.png)
+
 *Screenshot showing the test suite running with all tests passing*
 
 ### Test Coverage
 ![Test Coverage Screenshot](./test-coverage.png)
+
 *Screenshot showing test coverage metrics*
 
 
