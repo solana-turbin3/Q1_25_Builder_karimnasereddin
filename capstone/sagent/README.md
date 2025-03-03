@@ -24,6 +24,7 @@ Sagent is a powerful on-chain assistant that enables:
 - **Anchor Framework**: For writing and deploying Solana smart contracts
 - **Raydium Integration**: For DeFi operations and liquidity management
 - **Token Metadata Program**: For NFT and token management
+- **Solana Scaffold**: For initial template of the Next.js front-end
 - **OpenAI API**: For advanced natural language processing and command interpretation
 - **Langchain**: For AI-powered command processing and natural language understanding
 - **Solana Wallet Adapter**: For seamless wallet integration and transaction signing
@@ -89,6 +90,16 @@ mpl-token-metadata = "5.1.0"
 raydium-cpmm-cpi = { git = "https://github.com/raydium-io/raydium-cpi", branch = "anchor-0.30.1" }
 raydium-locking-cpi = { git = "https://github.com/raydium-io/raydium-cpi", branch = "anchor-0.30.1" }
 ```
+
+## Config State Class Diagram
+![Config Class Diagram](./config_state.png)
+
+## User Profile State Class Diagram
+![Profile Class Diagram](./profile_state.png)
+
+## Instructions Diagram
+![Instructions Diagram](./instructions.png)
+
 
 ## Test Results
 
